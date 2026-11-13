@@ -62,7 +62,8 @@ const N = set.data.total, L = 'ABCDE';
 const st = {}; for (let i = 1; i <= N; i++) st['Q' + String(i).padStart(2, '0')] = { choice: null, chute: false, note: '' };
 answers.forEach(a => { if (st[a.q_id]) Object.assign(st[a.q_id], { choice: a.choice, chute: a.chute, note: a.note || '' }); });
 $('title').textContent = set.title; document.title = set.title + ' · Vestibulinho';
-$('pdf').src = set.data.pdf + '#view=FitH'; $('open').href = set.data.pdf;
+const pdf = /^provas\/[\w.-]+\.pdf$/.test(set.data.pdf) ? set.data.pdf : 'about:blank';
+$('pdf').src = pdf + '#view=FitH'; $('open').href = pdf;
 
 function render() {
   const lock = !!submitted;

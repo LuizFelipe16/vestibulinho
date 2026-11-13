@@ -23,7 +23,11 @@
       const [k, row] = queue.entries().next().value; queue.delete(k);
       const { error } = await sb.from('answers').upsert([row], { onConflict: 'user_id,set_id,q_id' });
       if (!error) { fails = 0; continue; }
-      if (/travada|row-level security|mover/i.test(error.message)) { status('Essa resposta já estava travada.', 'warn'); continue; }
+      if (error.code) {                       // recusa do banco (trigger/RLS): não adianta repetir
+        // a letra já estava travada; a nota ainda pode ser gravada sozinha
+        if (row.note != null) await sb.from('answers').update({ note: row.note }).match({ set_id: row.set_id, q_id: row.q_id });
+        status('Essa resposta já estava travada.', 'warn'); setTimeout(() => { if (!queue.size) status(''); }, 4000); continue;
+      }
       if (!queue.has(k)) queue.set(k, row);
       fails++; status('Sem conexão: tentando salvar de novo…', 'warn');
       clearTimeout(retry); retry = setTimeout(flush, Math.min(30000, 4000 * fails));
