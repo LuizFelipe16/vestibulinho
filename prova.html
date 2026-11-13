@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prova · Vestibulinho</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%228%22 fill=%22%230b0e16%22/%3E%3Ccircle cx=%2216%22 cy=%2216%22 r=%2210%22 fill=%22none%22 stroke=%22%235ee08f%22 stroke-width=%222%22/%3E%3Ccircle cx=%2216%22 cy=%2216%22 r=%222.5%22 fill=%22%235ee08f%22/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="css/base.css">
+<style>
+html,body{height:100%;overflow:hidden}
+.top{position:relative;z-index:2;display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:16px 24px;border-bottom:1px solid var(--line);background:rgba(6,8,12,.92)}
+.top .t{flex:1;min-width:200px}
+.top h1{margin:4px 0 0;font-size:20px;font-weight:500;letter-spacing:-.01em}
+.top .bar{width:200px}
+.wrap{position:relative;z-index:1;display:flex;height:calc(100% - 79px)}
+.pdf{flex:1;min-width:0;border:none;background:#1a1d24}
+.folha{width:420px;flex:none;overflow-y:auto;border-left:1px solid var(--line);background:#0a0d14}
+.fh{position:sticky;top:0;z-index:1;padding:14px 18px;background:#0a0d14;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
+.fh p{margin:0;font-size:12.5px;color:var(--soft);line-height:1.5}
+.q{padding:10px 18px;border-bottom:1px solid rgba(255,255,255,.06)}
+.ql{display:flex;align-items:center;gap:8px}
+.qn{width:28px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--dim)}
+.lt{width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.18);background:transparent;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--soft);transition:border-color 140ms,background 140ms,color 140ms}
+.lt:hover:not(:disabled){border-color:rgba(124,157,255,.6);color:var(--ink)}
+.lt[aria-pressed=true]{background:var(--acc);border-color:var(--acc);color:#06080c;font-weight:600;box-shadow:0 0 12px rgba(124,157,255,.6)}
+.ch,.nb{margin-left:auto;min-height:30px;padding:0 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:transparent;font-size:12px;color:var(--dim)}
+.nb{margin-left:4px}
+.ch[aria-pressed=true]{border-color:rgba(251,197,74,.7);background:rgba(251,197,74,.12);color:var(--warn)}
+.nb.has{border-color:rgba(124,157,255,.5);color:var(--acc)}
+.ni{display:none;width:100%;margin-top:8px;min-height:36px;padding:0 12px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.03);color:var(--ink);font-size:13.5px}
+.q.open .ni{display:block}
+.q.ask .ni{border-color:rgba(251,197,74,.45)}
+.sent{padding:14px 18px;margin:14px 18px;border-radius:10px;border:1px solid rgba(94,224,143,.35);background:rgba(94,224,143,.07);font-size:14px;line-height:1.5}
+.locked .lt,.locked .ch{cursor:default}
+dialog{border:1px solid var(--line);border-radius:14px;background:#0a0d14;color:var(--ink);padding:24px;max-width:420px;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+dialog::backdrop{background:rgba(6,8,12,.75)}
+dialog h2{margin:0 0 10px;font-size:20px;font-weight:500}
+dialog p{margin:0 0 18px;color:var(--soft);line-height:1.55;font-size:14px}
+dialog .acts{display:flex;gap:10px;justify-content:flex-end}
+@media (max-width:899px){html,body{overflow:auto}.wrap{flex-direction:column;height:auto}.pdf{height:70vh}.folha{width:auto;border-left:none}}
+</style>
+</head>
+<body>
+<header class="top"><div class="t"><span class="mono" id="eb">Prova completa</span><h1 id="title">Carregando…</h1></div>
+  <div class="bar" role="progressbar" aria-label="Questões marcadas"><i id="bar" style="width:0"></i></div><span class="mono" id="cnt"></span>
+  <a class="pill-btn ghost" id="open" target="_blank" rel="noopener">Abrir PDF em outra aba</a><a class="pill-btn ghost" href="./">← Hoje</a><button class="pill-btn" id="send" type="button" hidden>Enviar prova</button></header>
+<div class="wrap"><iframe class="pdf" id="pdf" title="Caderno da prova"></iframe><aside class="folha" id="folha" aria-label="Folha de respostas"></aside></div>
+<dialog id="dlg"><h2>Enviar a prova?</h2><p id="dlgp"></p><div class="acts"><button class="pill-btn ghost" id="no" type="button">Voltar</button><button class="pill-btn" id="yes" type="button">Enviar</button></div></dialog>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js"></script>
+<script src="js/db.js"></script>
+<script>
+(async function () {
+'use strict';
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const id = new URLSearchParams(location.search).get('set');
+let session; try { session = await DB.requireLogin(); } catch (e) { return; }
+let got; try { got = await DB.set(id); } catch (e) { $('title').textContent = 'Não consegui carregar a prova: ' + e.message; return; }
+const { set, answers } = got; let submitted = got.submitted;
+const N = set.data.total, L = 'ABCDE';
+const st = {}; for (let i = 1; i <= N; i++) st['Q' + String(i).padStart(2, '0')] = { choice: null, chute: false, note: '' };
+answers.forEach(a => { if (st[a.q_id]) Object.assign(st[a.q_id], { choice: a.choice, chute: a.chute, note: a.note || '' }); });
+$('title').textContent = set.title; document.title = set.title + ' · Vestibulinho';
+$('pdf').src = set.data.pdf + '#view=FitH'; $('open').href = set.data.pdf;
+
+function render() {
+  const lock = !!submitted;
+  $('folha').classList.toggle('locked', lock);
+  $('folha').innerHTML = `<div class="fh"><span class="mono">Folha de respostas</span><p>${lock
+      ? 'Prova enviada. A correção chega no próximo treino.'
+      : 'Marque aqui conforme for fazendo. Tudo fica salvo: pode fechar e voltar depois. Se for chutar, marque <b>chute</b> e conte por quê na <b>nota</b>.'}</p></div>`
+    + (lock ? `<div class="sent">Enviada em ${new Date(submitted).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}. Boa!</div>` : '')
+    + Object.keys(st).map(q => { const s = st[q];
+      return `<div class="q${s.note ? ' open' : ''}${s.chute ? ' ask' : ''}" data-q="${q}"><div class="ql"><span class="qn">${q.slice(1)}</span>`
+        + L.split('').map(l => `<button type="button" class="lt" data-l="${l}" aria-pressed="${s.choice === l}" aria-label="Questão ${q.slice(1)}, alternativa ${l}"${lock ? ' disabled' : ''}>${l}</button>`).join('')
+        + `<button type="button" class="ch" aria-pressed="${s.chute}"${lock ? ' disabled' : ''}>chute</button><button type="button" class="nb${s.note ? ' has' : ''}" aria-label="Nota da questão ${q.slice(1)}">nota</button></div>`
+        + `<input class="ni" type="text" value="${esc(s.note)}" placeholder="${s.chute ? 'Por que chutou?' : 'O que não sabia ou confundiu?'}" aria-label="Nota da questão ${q.slice(1)}"${lock ? ' readonly' : ''}></div>`; }).join('');
+  count();
+}
+function count() {
+  const n = Object.values(st).filter(s => s.choice).length;
+  $('cnt').textContent = n + '/' + N + ' marcadas'; $('bar').style.width = (n / N * 100) + '%';
+  $('send').hidden = !!submitted; $('eb').textContent = submitted ? 'Prova enviada' : 'Prova completa · sem cronômetro';
+}
+const save = q => DB.save(session.user.id, id, q, { choice: st[q].choice, chute: st[q].chute, note: st[q].note.trim() || null });
+const timers = {};
+$('folha').addEventListener('click', e => {
+  const box = e.target.closest('.q'); if (!box) return; const q = box.dataset.q, s = st[q];
+  if (e.target.closest('.nb')) { box.classList.add('open'); box.querySelector('.ni').focus(); return; }
+  if (submitted) return;
+  const lt = e.target.closest('.lt');
+  if (lt) { s.choice = s.choice === lt.dataset.l ? null : lt.dataset.l; box.querySelectorAll('.lt').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.l === s.choice))); save(q); count(); return; }
+  if (e.target.closest('.ch')) { s.chute = !s.chute; e.target.closest('.ch').setAttribute('aria-pressed', String(s.chute)); box.classList.toggle('ask', s.chute);
+    box.querySelector('.ni').placeholder = s.chute ? 'Por que chutou?' : 'O que não sabia ou confundiu?'; if (s.chute) { box.classList.add('open'); } save(q); }
+});
+$('folha').addEventListener('input', e => {
+  if (submitted || !e.target.classList.contains('ni')) return;
+  const q = e.target.closest('.q').dataset.q; st[q].note = e.target.value;
+  e.target.closest('.q').querySelector('.nb').classList.toggle('has', !!e.target.value.trim());
+  clearTimeout(timers[q]); timers[q] = setTimeout(() => save(q), 700);
+});
+$('send').addEventListener('click', () => {
+  const blank = Object.values(st).filter(s => !s.choice).length;
+  $('dlgp').innerHTML = blank ? `Faltam <b>${blank}</b> em branco. Na prova de verdade, nunca deixe em branco: chute e marque <b>chute</b>. Depois de enviar, não dá para mudar.` : 'Todas marcadas. Depois de enviar, não dá para mudar.';
+  $('dlg').showModal();
+});
+$('no').addEventListener('click', () => $('dlg').close());
+$('yes').addEventListener('click', async () => {
+  Object.keys(timers).forEach(q => { clearTimeout(timers[q]); save(q); });
+  try { await DB.submit(id); submitted = new Date().toISOString(); $('dlg').close(); render(); }
+  catch (e) { $('dlgp').textContent = 'Não consegui enviar: ' + e.message + '. Tenta de novo.'; }
+});
+render();
+})();
+</script>
+</body></html>

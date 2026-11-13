@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head>
+<meta charset="utf-8">
+<title>Treino · Vestibulinho</title>
+<meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%228%22 fill=%22%230b0e16%22/%3E%3Ccircle cx=%2216%22 cy=%2216%22 r=%2210%22 fill=%22none%22 stroke=%22%235ee08f%22 stroke-width=%222%22/%3E%3Ccircle cx=%2216%22 cy=%2216%22 r=%222.5%22 fill=%22%235ee08f%22/%3E%3C/svg%3E"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap"><style>#db-status{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:2147482000;padding:10px 16px;border-radius:999px;background:#0a0d14;border:1px solid rgba(251,197,74,.45);color:#fbc54a;font-size:13px}#db-status[hidden]{display:none}</style><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js"></script><script src="js/fx.js"></script><script src="js/db.js"></script>
+<style>
+:root{--bg:#06080c;--ink:#eceff4;--dim:#808a9a;--soft:#9ea7b5;--acc:#7c9dff;--hdr:140px}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:'Space Grotesk',system-ui,sans-serif}
+body{overflow:hidden}
+button{font-family:inherit;cursor:pointer;color:inherit}
+input{font-family:inherit}
+button:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.mono{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.18em;color:var(--dim)}
+
+/* scene */
+#sc{position:fixed;inset:0;width:100%;height:100%;display:block;cursor:grab;touch-action:none}
+#sc.hot{cursor:pointer}
+
+/* header */
+.hd{position:fixed;top:0;left:0;right:0;z-index:20;padding:28px 24px 0;pointer-events:none}
+.hd-in{max-width:1200px;margin:0 auto;display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-content:space-between}
+.hd-t{display:flex;flex-direction:column;gap:8px}
+.hd h1{margin:0;font-size:30px;line-height:1.15;font-weight:500;letter-spacing:-.02em;text-shadow:0 0 18px var(--bg)}
+.prog{display:flex;align-items:center;gap:12px;margin-top:4px}
+.bar{width:320px;max-width:60vw;height:4px;border-radius:999px;background:rgba(255,255,255,.1);overflow:hidden}
+.bar i{display:block;height:100%;width:0;border-radius:999px;background:var(--acc);box-shadow:0 0 10px rgba(124,157,255,.7);transition:width 600ms cubic-bezier(.2,.7,.2,1)}
+.pill-btn{min-height:42px;padding:0 20px;border-radius:999px;border:1px solid rgba(124,157,255,.55);background:rgba(124,157,255,.12);color:var(--acc);font-size:14px;font-weight:500;pointer-events:auto;transition:background 200ms}
+.pill-btn:hover{background:rgba(124,157,255,.2)}
+
+/* labels that follow the stars */
+.lbl{position:fixed;inset:0;z-index:5;pointer-events:none;overflow:hidden}
+.lb{position:absolute;left:0;top:0;display:inline-flex;align-items:center;gap:8px;max-width:240px;padding:5px 12px 5px 10px;border-radius:999px;background:rgba(10,14,22,.8);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 4px 18px rgba(0,0,0,.35);font-size:13px;line-height:1.3;white-space:nowrap;opacity:var(--vis,1);pointer-events:auto;transition:border-color 200ms,box-shadow 200ms,background 200ms}
+.lb.off{pointer-events:none}
+.lb .dot{flex:none;width:6px;height:6px;border-radius:50%;background:#fbc54a}
+.lb .sh{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.lb .id{flex:none;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;color:var(--dim)}
+.lb.on,.lb:focus-visible{border-color:rgba(124,157,255,.65);background:rgba(10,16,30,.9);box-shadow:0 0 0 3px rgba(124,157,255,.15),0 6px 22px rgba(0,0,0,.45)}
+.lb:focus-visible{outline:none}
+
+/* mobile list */
+.list{display:none;flex-direction:column}
+.li{display:flex;align-items:center;gap:14px;min-height:56px;padding:12px 4px;border:none;border-bottom:1px solid rgba(255,255,255,.07);background:none;text-align:left}
+.li .s{flex:1;font-size:15px;font-weight:500}
+.li .w{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.12em}
+
+/* command-palette card */
+.back{position:fixed;inset:0;z-index:30;border:none;padding:0;margin:0;background:transparent;cursor:default;display:none}
+.back.on{display:block}
+.wrap{position:fixed;left:50%;top:calc(var(--hdr) + (100vh - var(--hdr)) / 2);z-index:40;width:min(680px,94vw);max-height:calc(100vh - var(--hdr) - 16px);display:flex;flex-direction:column;transform:translate(-50%,-46%);opacity:0;visibility:hidden;pointer-events:none;transition:opacity 260ms,transform 260ms,visibility 0s linear 260ms}
+.wrap.on{opacity:1;transform:translate(-50%,-50%);visibility:visible;pointer-events:auto;transition:opacity 520ms cubic-bezier(.2,.7,.2,1) 300ms,transform 520ms cubic-bezier(.2,.7,.2,1) 300ms,visibility 0s}
+.wrap.swap{transition-delay:0s}
+.glow{position:absolute;border-radius:50%;pointer-events:none}
+.g1{left:-6%;right:-6%;bottom:-90px;height:220px;background:radial-gradient(ellipse at 50% 40%,rgba(170,200,255,.55) 0,rgba(124,157,255,.35) 30%,rgba(80,100,220,.12) 55%,transparent 72%);filter:blur(28px)}
+.g2{left:18%;right:18%;bottom:-30px;height:70px;background:radial-gradient(ellipse,rgba(220,232,255,.5) 0,rgba(124,157,255,.2) 45%,transparent 70%);filter:blur(14px)}
+.panel{position:relative;flex:1 1 auto;min-height:0;overflow-y:auto;background:#0a0d14;border:1px solid rgba(255,255,255,.1);border-bottom-color:rgba(124,157,255,.35);border-radius:14px;box-shadow:0 30px 80px rgba(0,0,0,.45),0 50px 120px -30px rgba(124,157,255,.45)}
+.panel:focus{outline:none}
+.pc{transition:opacity 180ms}
+.pc.fade{opacity:.25}
+.ph{padding:18px 22px 16px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid rgba(255,255,255,.07)}
+.ptop{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.pst{display:flex;align-items:center;gap:14px}
+.pst .w{letter-spacing:.12em;white-space:nowrap;transition:color 300ms}
+.x{width:32px;height:32px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:transparent;font-size:15px}
+.x:hover{border-color:rgba(255,255,255,.35)}
+.panel h2{margin:0;font-size:22px;line-height:1.3;font-weight:500;letter-spacing:-.01em}
+.gt{color:var(--acc);font-family:'JetBrains Mono',monospace}
+.bd{margin:0;font-size:14px;line-height:1.6;color:var(--soft);white-space:pre-line}
+.rec{display:flex;gap:10px;align-items:baseline;padding:10px 12px;border-radius:10px;background:rgba(124,157,255,.06);border:1px solid rgba(124,157,255,.18)}
+.rec .ar{flex:none;color:var(--acc);font-family:'JetBrains Mono',monospace;font-size:13px}
+.rec .rb{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.rec .rt{font-size:14px;line-height:1.5;color:#dfe5ee}
+.tag{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.12em;color:var(--acc)}
+.rec .tag{margin-right:8px}
+.rec .src{font-size:12.5px;line-height:1.5;color:var(--dim)}
+.deps{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.deps .mono{letter-spacing:.12em}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:26px;padding:0 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:transparent;color:var(--soft);font-size:12.5px}
+.chip i{width:6px;height:6px;border-radius:50%}
+.chip:not(:disabled):hover{border-color:rgba(124,157,255,.55);color:var(--ink)}
+.chip:disabled{cursor:default}
+.opts{display:flex;flex-direction:column;padding:8px}
+.row{display:flex;gap:14px;align-items:center;padding:12px 14px;border:none;border-radius:10px;background:transparent;text-align:left;transition:background 160ms}
+.row:hover{background:rgba(255,255,255,.035)}
+.row.sel{background:rgba(124,157,255,.08)}
+.row:focus-visible,.row:focus-within{outline:none;box-shadow:inset 0 0 0 1px rgba(124,157,255,.55)}
+.row kbd{flex:none;width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:6px;border:1px solid rgba(255,255,255,.18);font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--soft);transition:border-color 160ms,color 160ms}
+.row.sel kbd{border-color:rgba(124,157,255,.6);color:var(--acc)}
+.row .rt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.row .rl{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.row .lab{font-size:15px;font-weight:500}
+.row .desc{font-size:13px;color:var(--soft)}
+.row .ck{color:var(--acc);font-size:16px;visibility:hidden}
+.row.sel .ck{visibility:visible}
+.row.free{padding:8px 14px;cursor:text}
+.row.free input{flex:1;min-width:0;min-height:36px;border:none;background:transparent;color:var(--ink);font-size:15px}
+.row.free input:focus-visible{outline:none}
+.note{padding:10px 22px 14px;border-top:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:10px}
+.note label{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--dim)}
+.note input{flex:1;min-width:0;min-height:40px;border:none;background:transparent;color:var(--ink);font-size:14.5px;outline-offset:4px}
+.foot{padding:12px 22px;background:rgba(255,255,255,.025);display:flex;justify-content:space-between;align-items:center;gap:8px}
+.fb{min-height:40px;padding:0 14px;border-radius:999px;border:1px solid rgba(255,255,255,.15);background:transparent;font-size:13.5px;white-space:nowrap;transition:border-color 160ms,color 160ms,background 160ms}
+.fb:hover{border-color:rgba(255,255,255,.3)}
+.fb.del[aria-pressed=true]{border-color:rgba(198,173,255,.6);color:#c6adff}
+.fb.pri{padding:0 16px;border-color:rgba(124,157,255,.55);background:rgba(124,157,255,.12);color:var(--acc);font-weight:500}
+.fb.pri:hover{background:rgba(124,157,255,.2)}
+.keys{position:relative;margin-top:12px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em;color:#8a93a3;text-shadow:0 0 6px var(--bg),0 0 12px var(--bg)}
+.txw{display:flex;flex-direction:column;gap:8px;padding:12px 14px;border-radius:10px;background:rgba(255,255,255,.035);border-left:2px solid rgba(124,157,255,.45)}
+.txw .tx{padding:0;background:none;border:none;border-radius:0}
+.panel h2.long{font-size:17px;line-height:1.45}
+.tx{margin:0;padding:12px 14px;border-radius:10px;background:rgba(255,255,255,.035);border-left:2px solid rgba(124,157,255,.45);font-size:14px;line-height:1.6;color:#d5dbe5;white-space:pre-wrap}
+.tx.code{font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.5}
+.row .let{flex:none;width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:6px;border:1px solid rgba(255,255,255,.18);font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--soft)}
+.row.ok{background:rgba(94,224,143,.1)}.row.ok .let{border-color:#5ee08f;color:#5ee08f}.row.ok .ck{visibility:visible;color:#5ee08f}
+.row.bad{background:rgba(255,107,107,.1)}.row.bad .let{border-color:#ff6b6b;color:#ff6b6b}.row.bad .ck{visibility:visible;color:#ff6b6b}
+.locked .row{cursor:default}.locked .row:not(.ok):not(.bad){opacity:.55}
+.fbk{margin:4px 22px 14px;display:flex;flex-direction:column;gap:10px}
+.fbk .box{padding:12px 14px;border-radius:10px;font-size:14px;line-height:1.55;color:#dfe5ee}
+.fbk .why{background:rgba(94,224,143,.07);border:1px solid rgba(94,224,143,.28)}
+.fbk .tip{background:rgba(251,197,74,.07);border:1px solid rgba(251,197,74,.28)}
+.fbk .tag{display:block;margin-bottom:4px}
+.fbk .why .tag{color:#5ee08f}.fbk .tip .tag{color:#fbc54a}
+.chrow{display:flex;align-items:center;gap:12px;padding:10px 22px 0}
+.chb{min-height:34px;padding:0 14px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:transparent;font-size:13px;color:var(--soft);transition:border-color 160ms,color 160ms,background 160ms}
+.chb:hover:not(:disabled){border-color:rgba(251,197,74,.6);color:#fbc54a}
+.chb[aria-pressed=true]{border-color:rgba(251,197,74,.7);background:rgba(251,197,74,.12);color:#fbc54a}
+.chb:disabled{cursor:default;opacity:.7}
+.note.ask{background:rgba(251,197,74,.06);border-top-color:rgba(251,197,74,.35)}
+.note.ask label{color:#fbc54a}
+.score{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.18em;color:#5ee08f}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* under 900px: no scene, a plain list and a sheet */
+@media (max-width:899px){
+  body{overflow:auto}
+  #sc,.lbl,.fx-hint{display:none}
+  .hd{position:static;pointer-events:auto;padding:28px 24px 0}
+  .list{display:flex;padding:12px 24px 40px}
+  .back.on{background:rgba(6,8,12,.82)}
+  .wrap{top:12px;left:12px;right:12px;width:auto;max-height:calc(100vh - 24px);transform:none;transition:opacity 200ms,visibility 0s linear 200ms}
+  .wrap.on{transform:none;transition:opacity 200ms,visibility 0s}
+  .glow,.keys{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<canvas id="sc" aria-hidden="true"></canvas>
+<div class="lbl" id="lbl" role="group" aria-label="Nebulosa de questões"></div>
+<header class="hd" id="hd"><div class="hd-in">
+  <div class="hd-t">
+    <span class="mono" id="eyebrow"></span>
+    <h1 id="title"></h1>
+    <div class="prog">
+      <div class="bar" id="bar" role="progressbar" aria-label="Questões respondidas" aria-valuemin="0"><i></i></div>
+      <span class="mono"><span id="done">0</span>/<span id="total">0</span> RESPONDIDAS</span><span class="score" id="score"></span>
+    </div>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center;pointer-events:auto"><button id="cp-copy" class="pill-btn" type="button">Copiar resultado</button><span id="hub-dock" style="display:inline-flex;align-items:center;pointer-events:auto"></span></div>
+</div></header>
+<nav class="list" id="list" aria-label="Questões"></nav>
+<button type="button" class="back" id="back" tabindex="-1" aria-label="Fechar questão e voltar ao mapa"></button>
+<div class="wrap" id="wrap">
+  <div class="glow g1" aria-hidden="true"></div>
+  <div class="glow g2" aria-hidden="true"></div>
+  <section id="cp-panel" class="panel" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="cp-q"><div class="pc" id="pc"></div></section>
+</div>
+<script>
+window.startTreino = function () {
+const DATA = window.SET_DATA;
+
+(function () {
+'use strict';
+const { esc, clamp, TAU } = FX;
+const $ = id => document.getElementById(id);
+
+/* ---------------- data ---------------- */
+const QS = (DATA.questions || []).map((q, i) => {
+  const options = (q.options || []).slice(0, 5).map((o, k) => typeof o === 'string' ? { id: 'ABCDE'[k], label: o, desc: '' } : { id: 'ABCDE'[k], label: o.label, desc: o.desc || '' });
+  return { id: String(q.id || 'Q' + (i + 1)), title: q.title || q.short || '', short: q.short || q.title || '', group: q.group, impact: q.impact == null ? 3 : +q.impact,
+    deps: (q.deps || []).map(String), options, allowFree: false, rec: '', source: q.source || '',
+    answer: String(q.answer || '').toUpperCase(), why: q.why || '', tip: q.tip || '', texts: (Array.isArray(q.text) ? q.text : q.text ? [q.text] : []), code: q.code || '',
+    body: [] };
+});
+const byId = {}; QS.forEach(q => { byId[q.id] = q; });
+// Cloud tints (the original blue/violet nebula) and status colours.
+const PALETTE = [
+  { core: '124,157,255', ca: .85, mid: '90,120,230', dust: '194,208,255', speed: 22, acc: '196,120,255', deep: '50,60,170' },
+  { core: '170,210,255', ca: .85, mid: '120,170,240', dust: '219,234,255', speed: 27, acc: '110,220,255', deep: '40,90,170' },
+  { core: '130,120,255', ca: .8, mid: '100,90,230', dust: '203,198,255', speed: 25, acc: '255,120,210', deep: '70,40,160' },
+  { core: '120,190,255', ca: .8, mid: '80,150,230', dust: '196,226,255', speed: 30, acc: '150,130,255', deep: '30,80,160' }
+];
+PALETTE.forEach(P => { P.coreRgb = `rgb(${P.core})`; P.dustRgb = `rgb(${P.dust})`; });
+const ST = { right: { w: 'ACERTOU', c: '#5ee08f', rgb: '94,224,143' }, wrong: { w: 'ERROU', c: '#ff6b6b', rgb: '255,107,107' }, pending: { w: 'A FAZER', c: '#fbc54a', rgb: '251,197,74' } };
+const pad = n => String(n).padStart(2, '0');
+
+// Groups (clouds): DATA.groups in order; a question without a group gets its own cloud
+// (up to 4 questions) or joins blocks of 2, so the nebula is not one single cloud.
+const GROUPS = (() => {
+  const out = [], find = id => out.find(g => g.id === id);
+  (DATA.groups || []).forEach(g => out.push({ id: String(g.id), label: g.label || String(g.id), qs: [] }));
+  QS.forEach((q, i) => {
+    let g = q.group != null ? find(String(q.group)) : null;
+    if (!g) { const id = q.group != null ? String(q.group) : '_' + (QS.length <= 4 ? i : Math.floor(i / 2)); g = find(id); if (!g) { g = { id, label: q.group != null ? String(q.group) : '', qs: [] }; out.push(g); } }
+    g.qs.push(q); q.g = g;
+  });
+  return out.filter(g => g.qs.length);
+})();
+
+// Layout (world units = px of the original 1200×680 stage, origin at its centre):
+// stars in group order across the stage in 1–3 alternating bands; each cloud wraps its stars.
+(() => {
+  let seed = 7; const rnd = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+  const order = [].concat(...GROUPS.map(g => g.qs)), n = order.length;
+  const rows = n <= 3 ? 1 : n <= 6 ? 2 : 3;
+  const levels = rows === 1 ? (n === 1 ? [0] : [-70, 60]) : rows === 2 ? [-95, 85] : [-165, 160, 0];
+  const step = n > 1 ? Math.min(230, 940 / (n - 1)) : 0;
+  order.forEach((q, i) => {
+    const lv = levels[i % levels.length];
+    q.x = Math.round((i - (n - 1) / 2) * step + (n > 1 ? (rnd() - .5) * 30 : 0));
+    q.y = Math.round(lv + (n > 1 ? (rnd() - .5) * 50 : 0));
+  });
+  GROUPS.forEach((g, gi) => {
+    const xs = g.qs.map(q => q.x), ys = g.qs.map(q => q.y), P = PALETTE[gi % PALETTE.length];
+    const sx = Math.max(...xs) - Math.min(...xs), sy = Math.max(...ys) - Math.min(...ys);
+    g.cx = Math.round(xs.reduce((a, b) => a + b, 0) / xs.length); g.cy = Math.round(ys.reduce((a, b) => a + b, 0) / ys.length + 20);
+    g.w = Math.round(Math.min(680, Math.max(300, sx + 280))); g.h = Math.round(Math.min(480, Math.max(240, sy * .9 + 230)));
+    Object.assign(g, { P, i: gi, spin: gi % 2 ? -1 : 1, rr: 0, ratio: 0 });
+  });
+  const imps = QS.map(q => q.impact), mn = Math.min(...imps), mx = Math.max(...imps);
+  QS.forEach(q => { q.d = mx === mn ? 13 : Math.round(7 + 11 * Math.sqrt((q.impact - mn) / (mx - mn))); q.al = 1; q.hv = 0; q.pop = 0; });
+  // depth (world units, + is toward the viewer): stars spread front to back, each cloud sits at its stars' mean depth
+  QS.forEach((q, i) => { q.z = Math.round((rnd() - .5) * 360 + (i % 2 ? 40 : -40)); });
+  GROUPS.forEach(g => { g.cz = g.qs.reduce((a, q) => a + q.z, 0) / g.qs.length; });
+})();
+const LINKS = [];
+QS.forEach(q => q.deps.forEach(d => { if (byId[d] && d !== q.id && !LINKS.some(l => (l.a === q.id && l.b === d) || (l.a === d && l.b === q.id))) LINKS.push({ a: q.id, b: d, lt: 0, sg: LINKS.length % 2 ? -1 : 1 }); }));
+const linked = (a, b) => LINKS.some(l => (l.a === a && l.b === b) || (l.b === a && l.a === b));
+
+// Nebula dust per cloud: clumps, filaments, haze and a few bright stars, stored in the
+// cloud's normalised polar space so the cloud can swirl while keeping its elliptical shape.
+(() => {
+  let seed = 13; const rnd = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+  const g = () => (rnd() + rnd() + rnd() + rnd() - 2) / 2;
+  const k = Math.min(1, 4 / GROUPS.length) * .85;
+  const cnt = x => Math.max(1, Math.round(x * k));
+  GROUPS.forEach(c => {
+    const hw = c.w * .5, hh = c.h * .5, D = [], B = [];
+    const polar = (dx, dy) => ({ r: Math.hypot(dx / hw, dy / hh), a0: Math.atan2(dy / hh, dx / hw), ox: 0, oy: 0, vx: 0, vy: 0, tw: .0008 + rnd() * .0018, ph: rnd() * TAU, z: g() * 150 });
+    const push = (dx, dy, dens) => D.push(Object.assign(polar(dx, dy), { s: rnd() < .7 ? 1 : rnd() < .8 ? 1.8 : 2.6, base: dens * (.45 + rnd() * .55) }));
+    for (let j = 0; j < 7; j++) {
+      const cx = g() * hw * .8, cy = g() * hh * .8, sp = .18 + rnd() * .3, n = cnt(40 + Math.round(rnd() * 50));
+      for (let i = 0; i < n; i++) { const dx = cx + g() * hw * sp, dy = cy + g() * hh * sp; push(dx, dy, Math.max(.08, 1 - Math.hypot(dx / hw, dy / hh) * .8)); }
+    }
+    for (let f = 0; f < 3; f++) {
+      const ang = rnd() * Math.PI, len = .7 + rnd() * .7, amp = .15 + rnd() * .25, ph = rnd() * 6, ox = g() * hw * .4, oy = g() * hh * .4, n = cnt(90);
+      for (let i = 0; i < n; i++) {
+        const t = (i / Math.max(1, n - 1) - .5) * len, wob = Math.sin(t * 7 + ph) * amp, lx = t * hw * 1.6, ly = wob * hh + g() * hh * .06;
+        push(ox + lx * Math.cos(ang) - ly * Math.sin(ang), oy + lx * Math.sin(ang) + ly * Math.cos(ang), .55 + rnd() * .4);
+      }
+    }
+    for (let i = 0, n = cnt(120); i < n; i++) push(g() * hw * 1.1, g() * hh * 1.1, .25);
+    for (let i = 0; i < 16; i++) B.push(Object.assign(polar(g() * hw * .75, g() * hh * .75), { s: 2.5 + rnd() * 1.5, base: 1 }));
+    c.dust = D; c.bright = B;
+    // per-point constants the draw loop would otherwise recompute every frame
+    for (const p of D.concat(B)) { p.f = 1 - Math.min(1, p.r); p.rw = p.r * c.w * .5; p.rh = p.r * c.h * .5; }
+  });
+})();
+
+/* ---------------- sprites (pre-rendered once) ---------------- */
+function mk(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+function cloudSprite(P, inner) {
+  const c = mk(256, 256), x = c.getContext('2d'), gr = x.createRadialGradient(128, 128, 0, 128, 128, 128);
+  if (inner) { gr.addColorStop(0, `rgba(${P.core},${P.ca})`); gr.addColorStop(.7, `rgba(${P.core},0)`); }
+  else { gr.addColorStop(0, `rgba(${P.core},${P.ca})`); gr.addColorStop(.3, `rgba(${P.mid},.22)`); gr.addColorStop(.7, `rgba(${P.mid},0)`); }
+  gr.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = gr; x.fillRect(0, 0, 256, 256); return c;
+}
+const glowCache = {};
+function glowSprite(rgb) {
+  if (glowCache[rgb]) return glowCache[rgb];
+  const c = mk(64, 64), x = c.getContext('2d'), gr = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+  gr.addColorStop(0, `rgba(${rgb},1)`); gr.addColorStop(.25, `rgba(${rgb},.45)`); gr.addColorStop(1, `rgba(${rgb},0)`);
+  x.fillStyle = gr; x.fillRect(0, 0, 64, 64); return (glowCache[rgb] = c);
+}
+GROUPS.forEach(g => { g.spr = cloudSprite(g.P, false); g.spr2 = cloudSprite(g.P, true); });
+
+// Volumetric gas: many soft blobs added together in 3–4 hues, then dark dust lanes cut out of it.
+// Rendered once per cloud (two variants that turn against each other) plus one wide background veil.
+function gasTexture(cols, seed, w, h, n, lanes) {
+  let sd = seed; const rnd = () => { sd = (sd * 9301 + 49297) % 233280; return sd / 233280; }, gs = () => (rnd() + rnd() + rnd() - 1.5) / 1.5;
+  const c = mk(w, h), x = c.getContext('2d'); x.globalCompositeOperation = 'source-over';
+  for (let i = 0; i < n; i++) {
+    const px = w / 2 + gs() * w * .4, py = h / 2 + gs() * h * .4, r = (.08 + rnd() * .22) * Math.min(w, h), col = cols[Math.floor(rnd() * cols.length)];
+    const a = .05 + rnd() * .07;
+    const gr = x.createRadialGradient(px, py, 0, px, py, r); gr.addColorStop(0, `rgba(${col},${a.toFixed(3)})`); gr.addColorStop(.55, `rgba(${col},${(a * .4).toFixed(3)})`); gr.addColorStop(1, `rgba(${col},0)`);
+    x.fillStyle = gr; x.fillRect(px - r, py - r, r * 2, r * 2);
+  }
+  x.globalCompositeOperation = 'destination-out';
+  for (let i = 0; i < lanes; i++) {
+    const px = w / 2 + gs() * w * .3, py = h / 2 + gs() * h * .3, len = (.15 + rnd() * .25) * w, ang = rnd() * Math.PI;
+    for (let k = 0; k < 14; k++) { const u = k / 13 - .5, qx = px + Math.cos(ang) * len * u, qy = py + Math.sin(ang) * len * u + Math.sin(u * 5) * 10, r = (.03 + rnd() * .04) * w;
+      const gr = x.createRadialGradient(qx, qy, 0, qx, qy, r); gr.addColorStop(0, 'rgba(0,0,0,.22)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = gr; x.fillRect(qx - r, qy - r, r * 2, r * 2); }
+  }
+  x.globalCompositeOperation = 'source-over';
+  for (let i = 0; i < 18; i++) { const px = w / 2 + gs() * w * .28, py = h / 2 + gs() * h * .28, r = 2 + rnd() * 6;
+    const gr = x.createRadialGradient(px, py, 0, px, py, r * 3); gr.addColorStop(0, 'rgba(235,240,255,.18)'); gr.addColorStop(1, 'rgba(235,240,255,0)'); x.fillStyle = gr; x.fillRect(px - r * 3, py - r * 3, r * 6, r * 6); }
+  return soften(c, Math.round(w / 40));
+}
+function soften(src, px) {
+  const c = mk(src.width, src.height), x = c.getContext('2d');
+  if ('filter' in x) { x.filter = `blur(${px}px)`; x.drawImage(src, 0, 0); x.filter = 'none'; } else x.drawImage(src, 0, 0);
+  return c;
+}
+GROUPS.forEach(g => { const P = g.P, cols = [P.core, P.mid, P.acc, P.deep, P.core];
+  g.gasA = gasTexture(cols, 17 + g.i * 31, 256, 256, 90, 5); g.gasB = gasTexture([P.acc, P.core, P.deep], 91 + g.i * 17, 192, 192, 50, 3); });
+// background veil: a band of gas that runs through every cloud and fills the space between them
+const VEIL = (() => {
+  const w = 512, h = 288, c = mk(w, h), x = c.getContext('2d'); x.globalCompositeOperation = 'source-over';
+  let sd = 5; const rnd = () => { sd = (sd * 9301 + 49297) % 233280; return sd / 233280; };
+  const toPx = (wx, wy) => [(wx + 800) / 1600 * w, (wy + 450) / 900 * h];
+  const pts = GROUPS.map(g => toPx(g.cx, g.cy)); if (pts.length === 1) pts.push([pts[0][0] + 200, pts[0][1] - 60]);
+  for (let i = 0; i < 160; i++) {
+    const seg = Math.floor(rnd() * Math.max(1, pts.length - 1)), u = rnd(), A = pts[seg], B = pts[Math.min(pts.length - 1, seg + 1)];
+    const px = A[0] + (B[0] - A[0]) * u + (rnd() - .5) * 80, py = A[1] + (B[1] - A[1]) * u + (rnd() - .5) * 70, r = 20 + rnd() * 60;
+    const P = GROUPS[Math.min(GROUPS.length - 1, seg + Math.round(u))].P, col = [P.deep, P.mid, P.acc][Math.floor(rnd() * 3)], a = .02 + rnd() * .045;
+    const gr = x.createRadialGradient(px, py, 0, px, py, r); gr.addColorStop(0, `rgba(${col},${a.toFixed(3)})`); gr.addColorStop(1, `rgba(${col},0)`); x.fillStyle = gr; x.fillRect(px - r, py - r, r * 2, r * 2);
+  }
+  for (let i = 0; i < 40; i++) { const px = rnd() * w, py = rnd() * h, r = 40 + rnd() * 100, col = PALETTE[i % PALETTE.length].deep;
+    const gr = x.createRadialGradient(px, py, 0, px, py, r); gr.addColorStop(0, `rgba(${col},.025)`); gr.addColorStop(1, `rgba(${col},0)`); x.fillStyle = gr; x.fillRect(px - r, py - r, r * 2, r * 2); }
+  return soften(c, 8);
+})();
+// light that an answered star throws on the gas around it
+const LIGHT = (() => { const c = mk(256, 256), x = c.getContext('2d'), gr = x.createRadialGradient(128, 128, 0, 128, 128, 128);
+  gr.addColorStop(0, 'rgba(255,255,255,.5)'); gr.addColorStop(.15, 'rgba(255,255,255,.2)'); gr.addColorStop(.5, 'rgba(255,255,255,.05)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+  x.fillStyle = gr; x.fillRect(0, 0, 256, 256); return c; })();
+// the whole dependency chain of a question (what it depends on, and what depends on it)
+function chainOf(id) {
+  const ids = new Set(); if (!id || !byId[id]) return ids;
+  const up = k => byId[k].deps.filter(d => byId[d]), down = k => QS.filter(q => q.deps.includes(k)).map(q => q.id);
+  const walk = (k, next) => next(k).forEach(n => { if (!ids.has(n)) { ids.add(n); walk(n, next); } });
+  ids.add(id); walk(id, up); walk(id, down); return ids;
+}
+
+/* ---------------- user state ---------------- */
+const S = HUB.load({ answers: {}, notes: {}, chute: {} });
+if (!S.chute || typeof S.chute !== 'object') S.chute = {};
+['answers', 'notes'].forEach(k => { if (!S[k] || typeof S[k] !== 'object') S[k] = {}; });
+let open = null, hoverM = null, hoverL = null, hoverK = null, copied = false;
+
+function statusOf(id) {
+  const a = S.answers[id];
+  if (!a) return 'pending';
+  return a === byId[id].answer ? 'right' : 'wrong';
+}
+const doneCount = () => QS.filter(q => statusOf(q.id) !== 'pending').length;
+const rightCount = () => QS.filter(q => statusOf(q.id) === 'right').length;
+function recOf(q) { const o = q.options.find(x => x.rec); return q.rec || (o ? '(' + o.id + ') ' + o.label : ''); }
+function out() {
+  const done = doneCount(), d = HUB.doc || {};
+  const head = ['## Treino: ' + (d.title || DATA.title || 'treino')];
+  const meta = [d.project, rightCount() + '/' + QS.length + ' acertos', done + '/' + QS.length + ' respondidas'].filter(Boolean).join(' · ');
+  const lines = QS.map(q => {
+    const a = S.answers[q.id], n = (S.notes[q.id] || '').trim(), st = statusOf(q.id), g = q.g && q.g.label ? ' [' + q.g.label + ']' : '';
+    const ans = (st === 'pending' ? 'não respondeu' : st === 'right' ? '✅ ' + a : '❌ marcou ' + a + ', certa ' + q.answer) + (S.chute[q.id] ? ' (chute)' : '');
+    return '- **' + q.id + ' · ' + q.short + '**' + g + ' → ' + ans + (n ? '\n  - obs.: ' + n : '');
+  });
+  return head.concat([meta, ''], lines).join('\n');
+}
+
+/* ---------------- static UI ---------------- */
+const eyebrow = DATA.eyebrow || ['TREINO', (HUB.doc || {}).project].filter(Boolean).join(' · ').toUpperCase();
+$('eyebrow').textContent = eyebrow;
+$('title').textContent = DATA.title || (HUB.doc || {}).title || 'Treino';
+$('total').textContent = QS.length;
+$('bar').setAttribute('aria-valuemax', QS.length);
+const ariaOf = q => q.id + (q.g.label ? ', ' + q.g.label : '') + ', ' + q.short + ': ' + q.title + ' ' + ST[statusOf(q.id)].w.toLowerCase();
+$('lbl').innerHTML = QS.map((q, i) => `<button type="button" class="lb" id="cp-star-${i}" data-id="${esc(q.id)}"><span class="dot" aria-hidden="true"></span><span class="sh">${esc(q.short)}</span><span class="id" aria-hidden="true">${esc(q.id)}</span></button>`).join('');
+$('list').innerHTML = QS.map(q => `<button type="button" class="li" data-id="${esc(q.id)}"><span class="mono" style="letter-spacing:0">${esc(q.id)}</span><span class="s">${esc(q.short)}</span><span class="w"></span></button>`).join('');
+const LBL = QS.map((q, i) => ({ el: $('cp-star-' + i), q, x: 0, y: 0, r: 8, vis: 1 }));
+const LI = Array.from($('list').children);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { LBL.forEach(l => { l.measure = true; }); FX.invalidate(); });
+
+/* ---------------- card ---------------- */
+const wrap = $('wrap'), panel = $('cp-panel'), pc = $('pc');
+function cardHTML(q) {
+  const idx = QS.indexOf(q), nOpt = q.options.length;
+  const rows = q.options.map((o, i) => `<button type="button" class="row" role="radio" data-row="${i}" data-opt="${esc(o.id)}" aria-checked="false"><span class="let">${o.id}</span><span class="rt"><span class="rl"><span class="lab">${esc(o.label)}</span></span>${o.desc ? `<span class="desc">${esc(o.desc)}</span>` : ''}</span><span class="ck" aria-hidden="true">✓</span></button>`).join('');
+  const ph = nOpt ? 'outra resposta…' : 'sua resposta…';
+  const free = q.allowFree ? `<label class="row free" id="cp-freerow"><kbd>${nOpt + 1}</kbd><input id="cp-free" type="text" data-row="${nOpt}" aria-label="${ph}" placeholder="${ph}" value="${esc(S.free[q.id] || '')}" autocomplete="off"><span class="ck" aria-hidden="true">✓</span></label>` : '';
+  const deps = q.deps.length ? `<div class="deps"><span class="mono">DEPENDE DE</span>${q.deps.map(d => { const t = byId[d]; return `<button type="button" class="chip" data-dep="${esc(d)}"${t ? '' : ' disabled'}><i aria-hidden="true" data-depdot="${esc(d)}" style="background:${t ? ST[statusOf(d)].c : '#4d5562'}"></i>${esc(t ? d + ' · ' + t.short : d)}</button>`; }).join('')}</div>` : '';
+  return `<div class="ph">
+<div class="ptop"><span class="mono">${esc(['TREINO', q.g && q.g.label ? q.g.label.toUpperCase() : '', q.id, pad(idx + 1) + '/' + pad(QS.length)].filter(Boolean).join(' · '))}</span><span class="pst"><span class="mono w" id="cp-w"></span><button type="button" class="x" id="cp-x" aria-label="Fechar (Esc)">×</button></span></div>
+${q.texts.length ? `<div class="txw">${q.texts.map(p => `<p class="tx">${esc(p)}</p>`).join('')}</div>` : ''}${q.code ? `<pre class="tx code">${esc(q.code)}</pre>` : ''}${q.source ? `<span class="mono" style="letter-spacing:.06em">${esc(q.source)}</span>` : ''}
+<h2 id="cp-q"${q.title.length > 90 ? ' class="long"' : ''}><span aria-hidden="true" class="gt">›</span> ${esc(q.title)}</h2>
+${deps}
+</div>
+<div class="chrow"><button type="button" class="chb" id="cp-chute" aria-pressed="false">Chutei <span class="mono" style="letter-spacing:.1em">· X</span></button><span class="mono" id="cp-chh" style="letter-spacing:.08em">marque antes de responder, se for chutar</span></div>
+<div role="radiogroup" aria-label="Alternativas" class="opts" id="cp-opts">${rows}</div>
+<div class="fbk" id="cp-fbk" hidden></div>
+<div class="note"><label for="cp-n">obs:</label><input id="cp-n" type="text" data-row="${nOpt + (q.allowFree ? 1 : 0)}" placeholder="anote a dúvida ou o porquê do erro" value="${esc(S.notes[q.id] || '')}" autocomplete="off"></div>
+<div class="foot"><button type="button" class="fb" id="cp-prev" aria-label="Pergunta anterior (←)">← Anterior</button><button type="button" class="fb pri" id="cp-next"></button></div>`;
+}
+function updateCard() {
+  if (!open) return;
+  const q = byId[open], st = ST[statusOf(q.id)], a = S.answers[q.id];
+  const w = $('cp-w'); if (w.textContent !== st.w) { w.textContent = st.w; w.style.color = st.c; }
+  pc.querySelectorAll('[data-opt]').forEach(b => { const on = b.dataset.opt === a, o = b.dataset.opt; b.setAttribute('aria-checked', String(on));
+    b.classList.toggle('ok', !!a && o === q.answer); b.classList.toggle('bad', !!a && on && o !== q.answer); const ck = b.querySelector('.ck'); if (ck) ck.textContent = !!a && on && o !== q.answer ? '✗' : '✓'; });
+  $('cp-opts').classList.toggle('locked', !!a);
+  const chb = $('cp-chute'), ch = !!S.chute[q.id]; chb.setAttribute('aria-pressed', String(ch)); chb.disabled = !!a;
+  $('cp-chh').textContent = a ? (ch ? 'você marcou que chutou' : 'respondida sem chute') : 'marque antes de responder, se for chutar';
+  const nt0 = ch ? 'Por que chutou? (opcional)' : a && a !== q.answer ? 'O que você não sabia ou confundiu? (opcional)' : 'anote uma dúvida (opcional)';
+  const ni = $('cp-n'); if (ni.placeholder !== nt0) ni.placeholder = nt0; ni.closest('.note').classList.toggle('ask', ch || (!!a && a !== q.answer));
+  const fb = $('cp-fbk');
+  if (a && fb.hidden) { fb.innerHTML = (q.why ? `<div class="box why"><span class="tag">POR QUE É ${esc(q.answer)}</span>${esc(q.why)}</div>` : '') + (q.tip ? `<div class="box tip"><span class="tag">PISTA PARA A PRÓXIMA</span>${esc(q.tip)}</div>` : ''); fb.hidden = !fb.innerHTML; }
+  else if (!a) { fb.hidden = true; fb.innerHTML = ''; }
+  pc.querySelectorAll('[data-depdot]').forEach(i => { const t = byId[i.dataset.depdot]; if (t) i.style.background = ST[statusOf(t.id)].c; });
+  const pending = QS.filter(x => x.id !== q.id && statusOf(x.id) === 'pending').length, more = pending || statusOf(q.id) === 'pending';
+  const n = $('cp-next'), nt = more ? 'Próxima →' : 'Concluir ✓'; if (n.textContent !== nt) n.textContent = nt; n.setAttribute('aria-label', pending ? 'Próxima questão (→)' : 'Concluir e voltar ao mapa');
+  const nRows = q.options.length + (q.allowFree ? 1 : 0);
+}
+pc.addEventListener('click', e => {
+  const q = byId[open]; if (!q) return;
+  const opt = e.target.closest('[data-opt]'); if (opt) { pick(q, opt.dataset.opt, true); return; }
+  const dep = e.target.closest('[data-dep]'); if (dep && !dep.disabled) { openQ(dep.dataset.dep); return; }
+  const id = (e.target.closest('button') || {}).id;
+  if (id === 'cp-chute') { if (!S.answers[q.id]) { S.chute[q.id] = !S.chute[q.id]; commit(); } return; }
+  if (id === 'cp-x') closeQ();
+  else if (id === 'cp-prev') step(-1);
+  else if (id === 'cp-next') { const pending = QS.some(x => x.id !== q.id && statusOf(x.id) === 'pending'); if (pending || statusOf(q.id) === 'pending') step(1); else advance(); }
+});
+pc.addEventListener('input', e => {
+  const q = byId[open]; if (!q) return;
+  if (e.target.id === 'cp-n') { S.notes[q.id] = e.target.value; commit(); }
+});
+$('back').addEventListener('click', () => closeQ());
+
+/* ---------------- state changes ---------------- */
+// q.st caches statusOf(q.id) and doneN the answered count, for the scene to read every frame;
+// every change to S goes through commit(), which refreshes both.
+const prevSt = {}; let doneN = 0;
+QS.forEach(q => { q.st = prevSt[q.id] = statusOf(q.id); if (q.st !== 'pending') doneN++; });
+const bursts = [];
+function commit() {
+  copied = false; doneN = 0;
+  QS.forEach(q => { const st = statusOf(q.id); if (prevSt[q.id] === 'pending' && st !== 'pending') burst(q, st); q.st = prevSt[q.id] = st; if (st !== 'pending') doneN++; });
+  paint();
+}
+function burst(q, st) {
+  if (FX.still) return;
+  const t0 = performance.now(), parts = [];
+  for (let i = 0; i < 22; i++) parts.push({ a: i / 22 * TAU + Math.random() * .3, v: .6 + Math.random() * .7, s: 1 + Math.random() * 1.4 });
+  bursts.push({ q, t0, parts, rgb: ST[st].rgb }); q.pop = t0;
+}
+// paint() runs on every change, keystrokes in the note field included: the DOM is written only
+// where a status, count or label actually changed.
+const painted = { done: -1, copy: '' };
+function paint() {
+  const done = doneN, total = QS.length;
+  HUB.save({ answers: S.answers, notes: S.notes, chute: S.chute }, { done, total, unit: 'RESPONDIDAS' });
+  const sc = done ? '· ' + rightCount() + ' ACERTOS' : ''; if ($('score').textContent !== sc) $('score').textContent = sc;
+  if (painted.done !== done) {
+    painted.done = done;
+    $('bar').firstChild.style.width = (total ? done / total * 100 : 0) + '%';
+    $('bar').setAttribute('aria-valuenow', done);
+    const dEl = $('done'); if (+dEl.textContent !== done) FX.countUp(dEl, done, 500);
+  }
+  QS.forEach((q, i) => {
+    if (LBL[i].st === q.st) return; LBL[i].st = q.st;
+    const st = ST[q.st];
+    LBL[i].el.querySelector('.dot').style.background = st.c; LBL[i].el.setAttribute('aria-label', ariaOf(q));
+    const w = LI[i].querySelector('.w'); w.textContent = st.w; w.style.color = st.c;
+  });
+  GROUPS.forEach(g => { g.ratio = g.qs.filter(q => q.st !== 'pending').length / g.qs.length; });
+  const copy = copied && !DATA.copyLabel ? 'Copiado ✓' : (DATA.copyLabel || 'Copiar resultado');
+  if (painted.copy !== copy) { painted.copy = copy; $('cp-copy').textContent = copy; }
+  updateCard();
+  FX.invalidate();
+}
+function pick(q, oid, toggle) {
+  if (S.answers[q.id]) return;
+  S.answers[q.id] = oid; commit();
+}
+$('cp-copy').addEventListener('click', () => { HUB.copy(out()); copied = true; painted.copy = 'Copiado ✓'; $('cp-copy').textContent = painted.copy; });
+
+/* ---------------- routing: #q=<id> ---------------- */
+const narrow = () => innerWidth < 900;
+function openQ(id) { if (!byId[id]) return; FX.route.set({ q: id }, !!open); }
+function closeQ() { FX.route.set({}, true); }
+function focusRow(i) {
+  const rows = Array.from(panel.querySelectorAll('[data-row]'));
+  if (!rows.length) return; const el = rows[Math.max(0, Math.min(rows.length - 1, i))];
+  el.focus({ preventScroll: true }); if (el.scrollIntoView) el.scrollIntoView({ block: 'nearest' });
+}
+let homeCam = null, backCam = null;
+function showQ(id, instant) {
+  const q = byId[id], was = open;
+  if (!was) backCam = { x: C.x, y: C.y, zoom: C.zoom, ox: C.ox, oy: C.oy };
+  open = id; hoverK = null;
+  pc.innerHTML = cardHTML(q); updateCard(); panel.scrollTop = 0;
+  if (was) { wrap.classList.add('swap'); pc.classList.add('fade'); requestAnimationFrame(() => pc.classList.remove('fade')); }
+  else wrap.classList.remove('swap');
+  wrap.classList.add('on'); $('back').classList.add('on');
+  document.body.classList.add('open');
+  C.locked = true; flyTo(q, instant); FX.touched();
+  refreshHover();
+  const a = S.answers[id];
+  setTimeout(() => { const el = a ? $('cp-next') : panel.querySelector('[data-row]'); if (el) el.focus({ preventScroll: true }); panel.scrollTop = 0; }, 30);
+}
+function hideQ(focusTo) {
+  const id = open; open = null;
+  wrap.classList.remove('on', 'swap'); $('back').classList.remove('on'); document.body.classList.remove('open');
+  C.locked = false;
+  if (backCam) C.fly(backCam, 1000); backCam = null;
+  refreshHover(); FX.invalidate();
+  setTimeout(() => {
+    if (focusTo === 'copy') { $('cp-copy').focus({ preventScroll: true }); return; }
+    const i = QS.findIndex(q => q.id === id); if (i < 0) return;
+    const el = narrow() ? LI[i] : LBL[i].el; if (el && el.offsetParent) el.focus({ preventScroll: true });
+  }, 30);
+}
+let closeFocus = null;
+function sync(r, instant) {
+  const id = r.q && byId[r.q] ? r.q : null;
+  if (id === open) return;
+  if (id) showQ(id, instant); else if (open) { hideQ(closeFocus); closeFocus = null; }
+}
+FX.route.on(r => sync(r, false));
+function step(d) { const i = QS.findIndex(q => q.id === open); openQ(QS[(i + d + QS.length) % QS.length].id); }
+function advance() {
+  const i = QS.findIndex(q => q.id === open);
+  const nxt = QS.slice(i + 1).concat(QS.slice(0, i)).find(x => statusOf(x.id) === 'pending');
+  if (nxt) openQ(nxt.id); else { closeFocus = 'copy'; closeQ(); }
+}
+
+/* ---------------- scene ---------------- */
+const canvas = $('sc');
+const C = FX.cam2d(canvas, { x: 0, y: 0, zoom: 1, minZoom: .5, maxZoom: 3, bounds: { x0: -720, y0: -460, x1: 720, y1: 460 } });
+let fit = 1, hdrH = 140;
+function layout(W, H) {
+  hdrH = narrow() ? 0 : $('hd').offsetHeight + 12;
+  document.documentElement.style.setProperty('--hdr', hdrH + 'px');
+  fit = clamp(Math.min((W - 80) / 1240, (H - hdrH - 30) / 700), .45, 1.4);
+  C.minZoom = fit * .7; C.maxZoom = fit * 3.2;
+  homeCam = { x: 0, y: 0, zoom: fit * 1.12, ox: .5, oy: (hdrH + (H - hdrH) / 2) / H };
+}
+function camFor(q) {
+  const W = C.W || innerWidth, cardW = Math.min(680, W * .94), gutter = (W - cardW) / 2;
+  return { x: q.x, y: q.y, zoom: fit * 2.3, ox: Math.max(gutter / 2, 70) / W, oy: (hdrH + (innerHeight - hdrH) / 2) / innerHeight };
+}
+function flyTo(q, instant) { const to = camFor(q); if (instant) { C.anim = null; Object.assign(C, to); FX.invalidate(); } else C.fly(to, 1000); }
+const sky = FX.sky({ count: 200, color: '207,216,230', seed: 13 });
+const dust = FX.dust({ color: '207,216,230', near: '124,157,255', density: 18000, min: 30, max: 90, repel: 130, seed: 5 });
+const starScale = () => clamp(Math.sqrt(C.zoom / fit), .8, 1.8);
+const starR = q => q.d / 2 * starScale();
+function hitTest(x, y) {
+  if (narrow()) return null;
+  // uses the screen positions of the last drawn frame (q.sx/q.sy/q.k), i.e. what the user sees
+  let best = 1e9, id = null;
+  for (const q of QS) { const d = Math.hypot(q.sx - x, q.sy - y); if (d < starR(q) * q.k + 14 && d < best) { best = d; id = q.id; } }
+  return id;
+}
+const focusId = () => open || hoverL || hoverM || hoverK;
+const drift = { x: 0, y: 0 };
+// 3D view: the scene tilts with the mouse and sways slowly; points are projected with perspective.
+// The view's sines/cosines are computed once per frame (viewTrig) instead of once per projected point.
+const VIEW = { yaw: 0, pitch: 0, W: innerWidth, H: innerHeight, cy: 1, sy: 0, cp: 1, sn: 0 }, FOCAL = 1100;
+function viewTrig() { VIEW.cy = Math.cos(VIEW.yaw); VIEW.sy = Math.sin(VIEW.yaw); VIEW.cp = Math.cos(VIEW.pitch); VIEW.sn = Math.sin(VIEW.pitch); }
+function sp(wx, wy, wz, noDrift) {
+  const z = C.zoom, rx = wx - C.x, ry = wy - C.y, cy = VIEW.cy, sy = VIEW.sy, cp = VIEW.cp, sn = VIEW.sn;
+  const x1 = rx * cy + wz * sy, z1 = -rx * sy + wz * cy, y2 = ry * cp - z1 * sn, z2 = ry * sn + z1 * cp, k = FOCAL / (FOCAL - z2 * z);
+  return { x: VIEW.W * C.ox + x1 * z * k + (noDrift ? 0 : drift.x), y: VIEW.H * C.oy + y2 * z * k + (noDrift ? 0 : drift.y), k };
+}
+let chainFor = null, chain = new Set();
+function refreshHover() {
+  const f = focusId();
+  LBL.forEach(l => l.el.classList.toggle('on', l.q.id === f));
+  canvas.classList.toggle('hot', !!hoverM && !open);
+  FX.invalidate();
+}
+function linkPath(ctx, ax, ay, bx, by, sg) {
+  const mx = (ax + bx) / 2, my = (ay + by) / 2, dx = bx - ax, dy = by - ay;
+  ctx.beginPath(); ctx.moveTo(ax, ay); ctx.quadraticCurveTo(mx - dy * .18 * sg, my + dx * .18 * sg, bx, by);
+}
+function drawLink(ctx, L, t) {
+  // L.a depends on L.b: matter flows from B (the prerequisite) to A
+  // Translucent strokes use a fixed rgb() colour plus globalAlpha, so no colour string is built per frame.
+  const A = byId[L.a], B = byId[L.b], ax = A.sx, ay = A.sy, bx = B.sx, by = B.sy, z = C.zoom * (A.k + B.k) / 2, sz = Math.sqrt(z);
+  const al = Math.min(A.al, B.al), lt = L.lt, P = A.g.P;
+  const mx = (ax + bx) / 2, my = (ay + by) / 2, dx = ax - bx, dy = ay - by, qx = mx - dy * .18 * L.sg, qy = my + dx * .18 * L.sg;
+  ctx.beginPath(); ctx.moveTo(bx, by); ctx.quadraticCurveTo(qx, qy, ax, ay);
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.strokeStyle = P.coreRgb;
+  ctx.lineWidth = 14 * sz; ctx.globalAlpha = (.025 + .07 * lt) * al; ctx.stroke();
+  ctx.lineWidth = 4 * sz; ctx.globalAlpha = (.05 + .12 * lt) * al; ctx.stroke();
+  ctx.lineWidth = 1; ctx.strokeStyle = 'rgb(220,230,255)'; ctx.globalAlpha = (.1 + .5 * lt) * al; ctx.stroke();
+  const n = 7, sp = FX.still ? 0 : t * .00018, gs = glowSprite(P.core), r = (1.2 + 1.6 * lt) * sz, ka = (.35 + .65 * lt) * al;
+  ctx.fillStyle = '#eef3ff';
+  for (let i = 0; i < n; i++) {
+    const u = (sp + i / n) % 1, v = 1 - u, x = v * v * bx + 2 * v * u * qx + u * u * ax, y = v * v * by + 2 * v * u * qy + u * u * ay;
+    ctx.globalAlpha = Math.sin(u * Math.PI) * ka; ctx.drawImage(gs, x - r * 4, y - r * 4, r * 8, r * 8);
+    ctx.fillRect(x - r * .4, y - r * .4, r * .8, r * .8);
+  }
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+}
+// Star gradients in unit space (the star is drawn through translate/rotate/scale), created once
+// per colour instead of five times per answered star per frame. Opacity comes from globalAlpha.
+const GRAD = {};
+function spikeGrad(ctx, rgb) {
+  const k = 's' + rgb; if (GRAD[k]) return GRAD[k];
+  const g = ctx.createLinearGradient(0, 0, 1, 0);
+  g.addColorStop(0, 'rgba(255,255,255,.85)'); g.addColorStop(.4, `rgba(${rgb},.35)`); g.addColorStop(1, `rgba(${rgb},0)`);
+  return (GRAD[k] = g);
+}
+function coreGrad(ctx, sk) {
+  const k = 'c' + sk; if (GRAD[k]) return GRAD[k];
+  const g = ctx.createRadialGradient(-.3, -.4, 0, 0, 0, 1);
+  if (sk === 'done') { g.addColorStop(0, '#ffffff'); g.addColorStop(.6, '#c8ffd9'); g.addColorStop(1, '#5ee08f'); }
+  else if (sk === 'right') { g.addColorStop(0, '#ffffff'); g.addColorStop(.6, '#c8ffd9'); g.addColorStop(1, '#5ee08f'); }
+  else { g.addColorStop(0, '#ffffff'); g.addColorStop(.6, '#ffd0d0'); g.addColorStop(1, '#ff6b6b'); }
+  return (GRAD[k] = g);
+}
+function drawStar(ctx, q, x, y, t) {
+  const sk = q.st, st = ST[sk], rs = starScale() * (q.k || 1), u = q.pop ? Math.min(1, (t - q.pop) / 700) : 1;
+  if (u >= 1) q.pop = 0;
+  const popK = q.pop ? 1 + .7 * Math.sin(u * Math.PI) * (1 - u * .4) : 1;
+  const r = q.d / 2 * rs * (1 + .2 * q.hv) * popK, still = FX.still;
+  if (sk === 'pending') {
+    // protostar: a dim core pulsing inside its cocoon of gas, amber ring = still waiting for you
+    const pulse = still ? .8 : .65 + .35 * Math.sin(t * .0024 + q.d);
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalAlpha = q.al * .4; const cr = q.d * 3.2 * rs; ctx.drawImage(glowSprite(q.g.P.mid), x - cr, y - cr, cr * 2, cr * 2);
+    ctx.globalAlpha = q.al * (.5 + .4 * pulse); const ar = q.d * 1.5 * rs * (1 + .3 * q.hv); ctx.drawImage(glowSprite('251,197,74'), x - ar, y - ar, ar * 2, ar * 2);
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = q.al * (.55 + .35 * pulse + .2 * q.hv); ctx.strokeStyle = st.c; ctx.lineWidth = 1.4;
+    ctx.beginPath(); ctx.arc(x, y, r + 4 * rs, 0, TAU); ctx.stroke();
+    ctx.globalAlpha = q.al; ctx.fillStyle = '#fff3d6'; ctx.beginPath(); ctx.arc(x, y, r * .55, 0, TAU); ctx.fill();
+  } else {
+    // ignited: bright core, halo in the answer colour, slowly turning diffraction spikes
+    const rgb = st.rgb, ig = q.lit == null ? 1 : q.lit;
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalAlpha = q.al * .7 * ig; const hr = q.d * 3 * rs * (1 + .4 * q.hv) * popK; ctx.drawImage(glowSprite(rgb), x - hr, y - hr, hr * 2, hr * 2);
+    ctx.globalAlpha = q.al * .8; ctx.drawImage(glowSprite('255,255,255'), x - r * 2.2, y - r * 2.2, r * 4.4, r * 4.4);
+    const L = q.d * (2.6 + .8 * q.hv) * rs * popK * ig, rot = still ? .3 : t * .00008 + q.d;
+    // each spike: a line from -len to +len along its angle; the gradient runs from the centre to +len
+    // (the other half takes the first stop), drawn in a frame where the spike lies on [-1, 1] of the x axis
+    if (L > 0) {
+      ctx.strokeStyle = spikeGrad(ctx, rgb); ctx.lineWidth = 1.2; ctx.globalAlpha = q.al;
+      for (let k = 0; k < 4; k++) {
+        const a = rot + k * Math.PI / 2 + (k % 2 ? 0 : .02), len = L * (k % 2 ? .7 : 1);
+        ctx.save(); ctx.translate(x, y); ctx.rotate(a); ctx.scale(len, 1);
+        ctx.beginPath(); ctx.moveTo(-1, 0); ctx.lineTo(1, 0); ctx.stroke(); ctx.restore();
+      }
+    }
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = q.al; ctx.fillStyle = coreGrad(ctx, sk);
+    ctx.save(); ctx.translate(x, y); ctx.scale(r, r); ctx.beginPath(); ctx.arc(0, 0, .85, 0, TAU); ctx.fill(); ctx.restore();
+  }
+  if (q.id === open && !FX.still) {
+    ctx.strokeStyle = 'rgba(124,157,255,.6)'; ctx.lineWidth = 1;
+    for (let i = 0; i < 2; i++) { const v = ((t / 1800) + i * .5) % 1; ctx.globalAlpha = .9 * (1 - v); ctx.beginPath(); ctx.arc(x, y, (18 + 42 * v) * rs, 0, TAU); ctx.stroke(); }
+  }
+  ctx.globalAlpha = 1;
+}
+// Gas layer cache: redrawn at half resolution when the camera moves, an answer changes the
+// brightness, or ~8 times a second for the slow swirl; every frame just pastes it.
+// The cache key is a fixed array of rounded numbers, compared in place (no string built per frame).
+const GAS = { c: mk(2, 2), key: new Float64Array(11 + GROUPS.length).fill(NaN), M: 32 };
+function gasStale(vals) {
+  const K = GAS.key; let stale = false;
+  for (let i = 0; i < vals.length; i++) if (K[i] !== vals[i]) { K[i] = vals[i]; stale = true; }
+  return stale;
+}
+const gasVals = new Array(11 + GROUPS.length);
+function renderGas(W, H, t) {
+  const still = FX.still, per = FX.eco() ? 400 : 120, slot = still ? 0 : Math.floor(t / per), z = C.zoom;
+  const done = QS.length ? doneN / QS.length : 0, v = gasVals, r = Math.round;
+  v[0] = r(W); v[1] = r(H); v[2] = r(C.x * 10); v[3] = r(C.y * 10); v[4] = r(z * 1000); v[5] = r(C.ox * 1000); v[6] = r(C.oy * 1000);
+  v[7] = slot; v[8] = r(VIEW.yaw * 1000); v[9] = r(VIEW.pitch * 1000); v[10] = r(done * 100);
+  for (let i = 0; i < GROUPS.length; i++) v[11 + i] = r(GROUPS[i].rr * 100);
+  if (!gasStale(v)) return;
+  // the layer covers the viewport plus a margin, so the drift offset never uncovers an edge
+  const sc = .5, M = GAS.M, cw = Math.ceil((W + 2 * M) * sc), ch = Math.ceil((H + 2 * M) * sc);
+  if (GAS.c.width !== cw || GAS.c.height !== ch) { GAS.c.width = cw; GAS.c.height = ch; }
+  const x = GAS.c.getContext('2d'); x.setTransform(1, 0, 0, 1, 0, 0); x.clearRect(0, 0, cw, ch); x.setTransform(sc, 0, 0, sc, M * sc, M * sc);
+  x.globalCompositeOperation = 'screen';
+  const tt = slot * per, cx0 = W * C.ox - C.x * z, cy0 = H * C.oy - C.y * z;
+  // veil, slight parallax
+  const VP = sp(0, 0, -380, true), pz = z * VP.k, vbr = still ? 1 : .9 + .1 * Math.sin(tt * .00013);
+  x.globalAlpha = (.7 + .2 * done) * vbr; x.drawImage(VEIL, VP.x - 800 * pz, VP.y - 450 * pz, 1600 * pz, 900 * pz);
+  // clouds: two layers turning against each other, brighter as the group gets answered
+  for (const g of GROUPS) {
+    const GP = sp(g.cx, g.cy, g.cz, true), gx = GP.x, gy = GP.y, ph = still ? 0 : Math.sin(tt * TAU / (g.P.speed * 1000) + g.i), br = 1 + .06 * (ph * .5 + .5);
+    const a = .7 + .2 * g.rr, gw = g.w * z * GP.k * 1.7 * br, gh = g.h * z * GP.k * 1.9 * br, spin = still ? 0 : tt * .0000045 * g.spin;
+    if (gx + gw < -M || gx - gw > W + M || gy + gh < -M || gy - gh > H + M) continue;
+    x.save(); x.translate(gx, gy); x.rotate(spin + ph * .04); x.globalAlpha = a; x.drawImage(g.gasA, -gw / 2, -gh / 2, gw, gh); x.restore();
+    x.save(); x.translate(gx, gy); x.rotate(-spin * 1.6 + 1.2); x.globalAlpha = a * .6; x.drawImage(g.gasB, -gw * .4, -gh * .4, gw * .8, gh * .8); x.restore();
+  }
+  x.globalAlpha = 1; x.globalCompositeOperation = 'source-over';
+}
+// Cloud dust (pass 0) and bright stars (pass 1): sp() inlined with this frame's view trig (viewTrig),
+// no closures or objects per point. Points flee the cursor on a spring and twinkle.
+function drawPoints(ctx, g, pts, pass, t, z, sz, kd, rot, tw, W, H, still, mOn, m) {
+  const R = 110, R2 = R * R;
+  const ccx = g.cx - C.x, ccy = g.cy - C.y, gcz = g.cz, cyw = VIEW.cy, syw = VIEW.sy, cpt = VIEW.cp, snt = VIEW.sn;
+  const bx = VIEW.W * C.ox + drift.x, by = VIEW.H * C.oy + drift.y, gs = pass ? glowSprite(g.P.dust) : null, mx = m.x, my = m.y;
+  ctx.fillStyle = pass ? '#fff' : g.P.dustRgb;
+  for (let i = 0; i < pts.length; i++) {
+    const p = pts[i], ang = p.a0 + rot + tw * p.f;
+    const rx = ccx + Math.cos(ang) * p.rw, ry = ccy + Math.sin(ang) * p.rh, wz = gcz + p.z;
+    const x1 = rx * cyw + wz * syw, z1 = -rx * syw + wz * cyw, y2 = ry * cpt - z1 * snt, z2 = ry * snt + z1 * cpt, kk = FOCAL / (FOCAL - z2 * z);
+    const px = bx + x1 * z * kk, py = by + y2 * z * kk;
+    if (px < -30 || px > W + 30 || py < -30 || py > H + 30) continue;
+    let near = 0;
+    if (!still) {
+      if (mOn) {
+        const dx = px + p.ox - mx, dy = py + p.oy - my, d2 = dx * dx + dy * dy;
+        if (d2 < R2 && d2 > .01) { const d = Math.sqrt(d2), fo = (1 - d / R) * 1.4; p.vx += dx / d * fo; p.vy += dy / d * fo; near = 1 - d / R; }
+      }
+      if (p.vx || p.vy || p.ox || p.oy) {
+        p.vx = (p.vx - p.ox * .035) * .87; p.vy = (p.vy - p.oy * .035) * .87; p.ox += p.vx; p.oy += p.vy;
+        if (Math.abs(p.ox) + Math.abs(p.oy) + Math.abs(p.vx) + Math.abs(p.vy) < .05) p.ox = p.oy = p.vx = p.vy = 0;
+      }
+    }
+    let a = Math.min(1, p.base * kd) * (still ? 1 : .62 + .38 * Math.sin(t * p.tw + p.ph));
+    if (near) a = Math.min(1, a + near * .6);
+    if (a <= .02) continue;
+    const x = px + p.ox, y = py + p.oy, s = p.s * sz * kk;
+    if (pass === 0) { ctx.globalAlpha = a * Math.min(1, .55 + .45 * kk * kk); ctx.fillRect(x - s / 2, y - s / 2, s, s); }
+    else { ctx.globalAlpha = a * .9; ctx.drawImage(gs, x - s * 4, y - s * 4, s * 8, s * 8); ctx.globalAlpha = a; ctx.fillRect(x - s / 3, y - s / 3, s * .66, s * .66); }
+  }
+}
+let lastT = 0, openT = 0;
+const DEPTH = QS.slice(), byDepth = (a, b) => a.k - b.k;
+function draw(ctx, t, St) {
+  if (narrow()) return;
+  C.update(St);
+  const W = St.W, H = St.H, z = C.zoom, still = FX.still;
+  if (!still && !open && !C.anim && !C.input.dragging) { drift.x = Math.sin(t * .00005) * 16; drift.y = Math.cos(t * .000041) * 9; }
+  VIEW.W = W; VIEW.H = H;
+  { const mOnV = FX.mouse.on && !open, mx = mOnV ? FX.mouse.x / W - .5 : 0, my = mOnV ? FX.mouse.y / H - .5 : 0;
+    const ty = still || open ? 0 : Math.sin(t * .00007) * .1 + mx * .34, tp = still || open ? 0 : Math.cos(t * .00006) * .05 + my * .2;
+    const e = still ? 1 : .045; VIEW.yaw += (ty - VIEW.yaw) * e; VIEW.pitch += (tp - VIEW.pitch) * e; }
+  viewTrig();
+  for (const q of QS) { const P = sp(q.x, q.y, q.z); q.sx = P.x; q.sy = P.y; q.k = P.k; }
+  // dt >= 0: a frame stamped earlier than the previous one (rAF time vs performance.now) must not run the easing backwards
+  const dt = lastT ? Math.max(0, Math.min(64, t - lastT)) : 16; lastT = t;
+  const k = still ? 1 : 1 - Math.pow(.85, dt / 16.7);
+  openT += ((open ? 1 : 0) - openT) * k * .8;
+  const m = FX.mouse, mOn = m.on && !open;
+
+  // hover by proximity to a star (canvas hit test)
+  const hm = mOn && !C.input.dragging ? hitTest(m.x, m.y) : null;
+  if (hm !== hoverM) { hoverM = hm; refreshHover(); }
+  const f = focusId();
+  if (f !== chainFor) { chainFor = f; chain = chainOf(f); }
+  for (const q of QS) { const lit = !f || chain.has(q.id); q.al += ((lit ? 1 : .3) - q.al) * k; q.hv += ((q.id === f ? 1 : 0) - q.hv) * k;
+    const on = q.st !== 'pending' ? 1 : 0; q.lit = q.lit == null ? on : q.lit + (on - q.lit) * k * .25; }
+  for (const L of LINKS) L.lt += ((f && chain.has(L.a) && chain.has(L.b) ? 1 : 0) - L.lt) * k;
+
+  sky.draw(ctx, t, St, -C.x * z * .12 - VIEW.yaw * 90, -C.y * z * .12 + VIEW.pitch * 70);
+  // all the gas (veil + clouds) comes from one cached half-resolution layer
+  for (const g of GROUPS) g.rr += (g.ratio - g.rr) * k * .4;
+  renderGas(W, H, t);
+  ctx.globalCompositeOperation = 'screen'; ctx.globalAlpha = .7; ctx.drawImage(GAS.c, drift.x - GAS.M, drift.y - GAS.M, W + 2 * GAS.M, H + 2 * GAS.M); ctx.globalCompositeOperation = 'source-over';
+
+  // clouds: soft glow + swirling dust that flees the cursor
+  const sz = clamp(Math.sqrt(z * fit), .6, 1.7);
+  for (const g of GROUPS) {
+    const GC = sp(g.cx, g.cy, g.cz), op = .22 + .68 * g.rr, glowA = .04 + .06 * g.rr, gx = GC.x, gy = GC.y;
+    const ph = still ? 0 : Math.sin(t * TAU / (g.P.speed * 1000) + g.i);
+    const br = 1 + .06 * (ph * .5 + .5), w = g.w * z * br * 1.25, h = g.h * z * br * 1.25;
+    if (gx + w / 2 < 0 || gx - w / 2 > W || gy + h / 2 < 0 || gy - h / 2 > H) continue;
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalAlpha = glowA * .9; ctx.drawImage(g.spr2, gx - g.w * .3 * z, gy - g.h * .27 * z, g.w * .6 * z, g.h * .54 * z);
+    ctx.globalCompositeOperation = 'source-over';
+    const kd = (.55 + .6 * op) * .8;
+    const rot = still ? 0 : g.spin * t * .000012, tw = still ? 0 : Math.sin(t * .00021 + g.i * 1.7) * .3;
+    // hot path: ~3000 points a frame (see drawPoints)
+    drawPoints(ctx, g, g.dust, 0, t, z, sz, kd, rot, tw, W, H, still, mOn, m);
+    drawPoints(ctx, g, g.bright, 1, t, z, sz, kd, rot, tw, W, H, still, mOn, m);
+  }
+  ctx.globalAlpha = 1;
+  // answered stars light up the gas around them
+  ctx.globalCompositeOperation = 'lighter';
+  for (const q of QS) { if (!q.lit || q.lit < .01) continue; const x = q.sx, y = q.sy, lr = 130 * z * q.k * (.6 + .4 * q.lit);
+    ctx.globalAlpha = .1 * q.lit * q.al; ctx.drawImage(LIGHT, x - lr, y - lr, lr * 2, lr * 2);
+    ctx.globalAlpha = .18 * q.lit * q.al; const cr = lr * .8; ctx.drawImage(glowSprite(q.g.P.acc), x - cr, y - cr, cr * 2, cr * 2); }
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+  dust.draw(ctx, t, St);
+
+  // dependency threads and stars
+  for (const L of LINKS) if (!(open && (L.a === open || L.b === open))) drawLink(ctx, L, t);
+  DEPTH.sort(byDepth);   // back to front, sorted in place (no copy per frame)
+  for (const q of DEPTH) if (q.id !== open) drawStar(ctx, q, q.sx, q.sy, t);
+
+  // label pills follow the stars
+  const vis0 = 1 - openT;
+  for (const l of LBL) {
+    const q = l.q; l.x = q.sx; l.y = q.sy; l.r = starR(q) * q.k + 5; l.z = q.k;
+    const on = l.x > -40 && l.x < W + 40 && l.y > hdrH - 10 && l.y < H + 20;
+    l.vis = on ? Math.max(0, Math.min(1, q.al + .1)) * vis0 : 0;
+    const off = l.vis < .2; if (l.off !== off) { l.off = off; l.el.classList.toggle('off', off); l.el.tabIndex = off && open ? -1 : 0; }
+  }
+  FX.labels(LBL, { x0: 12, y0: hdrH, x1: W - 12, y1: H - 12, gap: 8 });
+  FX.tethers(ctx, LBL, s => `rgba(255,255,255,${(.12 * s.vis).toFixed(3)})`);
+
+  // open: dim everything, keep the open star and its threads lit
+  if (openT > .01) {
+    ctx.globalAlpha = .66 * openT; ctx.fillStyle = '#06080c'; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1;
+    if (open) { for (const L of LINKS) if (L.a === open || L.b === open) drawLink(ctx, L, t); const q = byId[open]; drawStar(ctx, q, q.sx, q.sy, t); }
+  }
+
+  // answer bursts
+  for (let i = bursts.length - 1; i >= 0; i--) {
+    const b = bursts[i], u = (t - b.t0) / 900;
+    if (u >= 1) { bursts.splice(i, 1); continue; } if (u < 0) continue;
+    const x = b.q.sx, y = b.q.sy, rs = starScale() * b.q.k, e = 1 - Math.pow(1 - u, 3);
+    ctx.strokeStyle = `rgba(${b.rgb},${(.8 * (1 - u)).toFixed(3)})`; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(x, y, (b.q.d / 2 + 4 + 46 * e) * rs, 0, TAU); ctx.stroke();
+    ctx.fillStyle = `rgb(${b.rgb})`;
+    for (const p of b.parts) { const d = (6 + 52 * e * p.v) * rs, s = p.s * (1 - u) * rs + .3; ctx.globalAlpha = 1 - u; ctx.fillRect(x + Math.cos(p.a) * d - s / 2, y + Math.sin(p.a) * d - s / 2, s, s); }
+    ctx.globalAlpha = 1;
+  }
+}
+let touchedCam = false;
+const stage = FX.stage(canvas, { draw, onResize: St => { layout(St.W, St.H); if (open) flyTo(byId[open], true); else if (homeCam && !touchedCam) Object.assign(C, homeCam); } });
+canvas.addEventListener('pointerdown', () => { touchedCam = true; });
+canvas.addEventListener('wheel', () => { touchedCam = true; }, { passive: true });
+canvas.addEventListener('click', e => { if (open) return; const id = hitTest(e.clientX, e.clientY); if (id) openQ(id); });
+layout(stage.W, stage.H); Object.assign(C, homeCam);
+FX.hint('arraste para mover · role para aproximar · Ctrl+K busca');
+
+/* ---------------- labels, list, search ---------------- */
+$('lbl').addEventListener('click', e => { const b = e.target.closest('.lb'); if (b) openQ(b.dataset.id); });
+$('lbl').addEventListener('pointerover', e => { const b = e.target.closest('.lb'); const id = b ? b.dataset.id : null; if (id !== hoverL) { hoverL = id; refreshHover(); } });
+$('lbl').addEventListener('pointerout', e => { if (!e.relatedTarget || !e.relatedTarget.closest || !e.relatedTarget.closest('.lb')) { hoverL = null; refreshHover(); } });
+$('lbl').addEventListener('focusin', e => { const b = e.target.closest('.lb'); if (b && !open) { hoverK = b.dataset.id; refreshHover(); } });
+$('lbl').addEventListener('focusout', () => { hoverK = null; refreshHover(); });
+$('list').addEventListener('click', e => { const b = e.target.closest('.li'); if (b) openQ(b.dataset.id); });
+const search = FX.search({ placeholder: 'Buscar questões', accent: '#7c9dff', items: () => QS.map(q => ({ group: q.g.label || '', title: q.id + ' · ' + q.short, sub: q.title + ' · ' + ST[statusOf(q.id)].w.toLowerCase(),
+  keywords: q.texts.join(' ') + ' ' + q.options.map(o => o.label).join(' '), go: () => openQ(q.id) })) });
+
+/* ---------------- keyboard ---------------- */
+addEventListener('keydown', e => {
+  if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || search.isOpen) return;
+  const t = e.target || {}, tag = t.tagName, k = e.key, inInput = tag === 'INPUT' || tag === 'TEXTAREA';
+  if (!open) {
+    if (!QS.length || inInput) return;
+    const curId = hoverK || hoverL || hoverM, cur = curId ? QS.findIndex(q => q.id === curId) : -1;
+    if (k === 'ArrowRight' || k === 'ArrowDown' || k === 'ArrowLeft' || k === 'ArrowUp') {
+      if (narrow()) return;
+      e.preventDefault();
+      const d = k === 'ArrowRight' || k === 'ArrowDown' ? 1 : -1, i = cur < 0 ? (d > 0 ? 0 : QS.length - 1) : (cur + d + QS.length) % QS.length;
+      LBL[i].el.focus({ preventScroll: true }); hoverK = QS[i].id; refreshHover();
+      const q = QS[i], z = C.zoom, sx = C.W * C.ox + (q.x - C.x) * z, sy = C.H * C.oy + (q.y - C.y) * z;
+      if (sx < 80 || sx > C.W - 80 || sy < hdrH + 40 || sy > C.H - 60) C.fly({ x: q.x, y: q.y }, 700);
+    } else if (k === 'Enter' && tag !== 'BUTTON') {
+      e.preventDefault(); const p = QS.find(q => statusOf(q.id) === 'pending'); openQ(cur >= 0 ? QS[cur].id : (p || QS[0]).id);
+    }
+    return;
+  }
+  const q = byId[open], rows = Array.from(panel.querySelectorAll('[data-row]')), ri = rows.indexOf(t);
+  if (k === 'Escape') { e.preventDefault(); closeQ(); return; }
+  if (k === 'ArrowDown' || k === 'ArrowUp') { e.preventDefault(); focusRow(ri < 0 ? (k === 'ArrowDown' ? 0 : rows.length - 1) : ri + (k === 'ArrowDown' ? 1 : -1)); return; }
+  if (k === 'Enter') {
+    if (t.id === 'cp-free' || t.id === 'cp-n') { e.preventDefault(); advance(); return; }
+    const row = t.getAttribute ? t.getAttribute('data-row') : null;
+    if (row != null && q.options[+row]) { e.preventDefault(); if (S.answers[q.id]) advance(); else { pick(q, q.options[+row].id, false); const b = $('cp-next'); if (b) b.focus({ preventScroll: true }); } return; }
+    if (tag !== 'BUTTON') { e.preventDefault(); advance(); }
+    return;
+  }
+  if (inInput) return;
+  if (k === 'ArrowRight') { e.preventDefault(); step(1); return; }
+  if (k === 'ArrowLeft') { e.preventDefault(); step(-1); return; }
+  const low = (k || '').toLowerCase(), n = Math.max('12345'.indexOf(low), 'abcde'.indexOf(low));
+  if (n >= 0 && n < q.options.length) { e.preventDefault(); if (!S.answers[q.id]) { pick(q, q.options[n].id, false); const b = $('cp-next'); if (b) b.focus({ preventScroll: true }); } return; }
+  if (low === 'x') { e.preventDefault(); if (!S.answers[q.id]) { S.chute[q.id] = !S.chute[q.id]; commit(); } return; }
+  if (low === 'n' || low === '/') { e.preventDefault(); const el = $('cp-n'); if (el) el.focus(); }
+});
+
+/* ---------------- start ---------------- */
+paint();
+sync(FX.route.get(), true);
+})();
+};
+</script>
+<script src="js/treino-boot.js"></script>
+</body></html>
