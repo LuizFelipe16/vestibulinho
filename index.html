@@ -68,6 +68,7 @@ function loginView() {
     <input id="pw" type="password" placeholder="senha" autocomplete="current-password" autofocus>
     <div class="err" id="err" role="alert"></div>
     <button class="pill-btn" type="submit">Entrar</button></form></div>`;
+  document.dispatchEvent(new Event('app-ready'));
   $('f').addEventListener('submit', async e => {
     e.preventDefault(); $('err').textContent = '';
     try { await DB.login($('pw').value); start(); }
@@ -122,6 +123,7 @@ async function hoje() {
   </div>`;
   $('out').addEventListener('click', () => DB.logout());
   document.dispatchEvent(new Event('app-ready'));
+  dispatchEvent(new Event('resize'));   // Ajustes local: encaixa o lápis no cabeçalho
 }
 
 async function start() {
