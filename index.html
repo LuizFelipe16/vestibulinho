@@ -73,7 +73,7 @@ button.chip:hover{border-color:rgba(251,197,74,.55)}
 'use strict';
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-const { TAU } = FX;
+const { TAU } = FX;  // (streak/sequência removida da tela: mínimo de informação)
 const PROVA_REAL = '2026-12-06';
 const fmt = d => { const [y, m, dd] = d.split('-'); return dd + '/' + m; };
 const days = (a, b) => Math.round((new Date(b + 'T12:00') - new Date(a + 'T12:00')) / 864e5);
@@ -139,28 +139,23 @@ let ITEMS = [], LBL = [], open = null, hover = null;
 async function hoje() {
   const today = DB.today();
   const o = await DB.overview();
-  ITEMS = build(o, today);
+  ITEMS = build(o, today).filter(x => x.st === 'today' || x.st === 'pend' || x.st === 'open');
   const treinos = ITEMS.filter(s => s.kind === 'treino');
   const pend = treinos.filter(s => s.st === 'pend'), hojeT = treinos.filter(s => s.st === 'today');
-  const next = ITEMS.find(s => s.st === 'open') || hojeT[0] || pend[0] || treinos.find(s => s.st === 'future');
-  const seq = streak(o.submissions, new Set(treinos.map(t => t.id)));
+  const next = ITEMS.find(s => s.st === 'open') || hojeT[0] || pend[0];
   const faltam = days(today, PROVA_REAL);
-  const ctaText = !next ? '' : next.kind === 'prova' ? 'Fazer a prova de hoje →' : next.st === 'today' ? (next.n ? 'Continuar o treino de hoje →' : 'Começar o treino de hoje →') : next.st === 'pend' ? 'Fazer um pendente →' : 'Adiantar o próximo →';
+  const n = ITEMS.length;
+  const ctaText = !next ? '' : next.kind === 'prova' ? 'Fazer a prova de hoje →' : next.st === 'today' ? (next.n ? 'Continuar o treino de hoje →' : 'Começar o treino de hoje →') : 'Fazer um pendente →';
   $('app').innerHTML = `
   <header class="hd"><div class="hd-in">
-    <div><span class="mono">Vestibulinho · ${fmt(today)}</span>
-      <h1>${faltam > 0 ? faltam + (faltam === 1 ? ' dia' : ' dias') + ' até a prova' : faltam === 0 ? 'Hoje é a prova. Boa!' : 'Prova feita'}</h1>
-      <div class="chips">
-        <span class="chip" title="Dias seguidos em que você terminou pelo menos um treino. Não deixa zerar!"><i style="background:var(--ok)"></i>Sequência: <b>${seq} ${seq === 1 ? 'dia' : 'dias'}</b> seguidos</span>
-        ${pend.length ? `<button class="chip" id="pendchip" type="button" title="Treinos de dias que já passaram. Sem pressa: um de cada vez."><i style="background:var(--warn)"></i><b>${pend.length}</b> ${pend.length === 1 ? 'pendente' : 'pendentes'}</button>` : `<span class="chip"><i style="background:var(--ok)"></i>nada pendente</span>`}
-      </div></div>
+    <div><span class="mono">Vestibulinho · ${fmt(today)}${faltam > 0 ? ' · faltam ' + faltam + ' dias' : ''}</span>
+      <h1>${n ? (n === 1 ? '1 coisa para fazer' : n + ' coisas para fazer') : 'Tudo feito por hoje'}</h1></div>
     <div class="acts">${next ? `<a class="pill-btn cta" href="${link(next)}">${ctaText}</a>` : ''}<span id="hub-dock" style="display:inline-flex;align-items:center"></span><button class="pill-btn ghost" id="out" type="button">Sair</button></div>
   </div></header>
   <nav class="list" id="list" aria-label="Treinos e provas">${ITEMS.map(s => `<a class="li" href="${link(s)}"><span style="width:8px;height:8px;border-radius:50%;background:${ST[s.st].c}"></span><span class="t">${esc(s.title)}</span><span class="d">${fmt(s.due)} · ${ST[s.st].w}</span></a>`).join('')}</nav>
-  <div class="legend" aria-hidden="true">${['today', 'done', 'pend', 'future', 'open', 'locked'].map(k => `<span><i style="background:${ST[k].c}"></i>${ST[k].w}</span>`).join('')}</div>
+  <div class="legend" aria-hidden="true">${['today', 'pend', 'open'].filter(k => ITEMS.some(x => x.st === k)).map(k => `<span><i style="background:${ST[k].c}"></i>${ST[k].w}</span>`).join('')}</div>
   <section class="panel" id="panel" role="dialog" aria-labelledby="ptitle"></section>`;
   $('out').addEventListener('click', () => DB.logout());
-  if ($('pendchip')) $('pendchip').addEventListener('click', () => openItem(pend[0].id));
   setupScene(today);
   document.dispatchEvent(new Event('app-ready'));
 }
@@ -191,27 +186,19 @@ addEventListener('keydown', e => { if (e.key === 'Escape' && open) closeItem(); 
 const glowCache = {};
 function glowS(rgb) { if (glowCache[rgb]) return glowCache[rgb]; const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'), g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, `rgba(${rgb},1)`); g.addColorStop(.3, `rgba(${rgb},.4)`); g.addColorStop(1, `rgba(${rgb},0)`); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return (glowCache[rgb] = c); }
 function setupScene(today) {
-  const monday = d => { const x = new Date(d + 'T12:00'); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x; };
-  const wk = d => Math.max(0, Math.round((monday(PROVA_REAL) - monday(d)) / (7 * 864e5)));   // 0 = semana da prova
-  const W = Math.max(1, wk(today), ...ITEMS.map(s => wk(s.due)));
-  const rOf = w => .3 + .7 * (w / W);
-  const angOf = d => -Math.PI / 2 + ((new Date(d + 'T12:00').getDay() + 6) % 7) / 7 * TAU;   // seg..dom pela órbita
-  const perDay = {};
-  ITEMS.forEach(s => {
-    const i = perDay[s.due] = (perDay[s.due] || 0) + 1;
-    const a = angOf(s.due) + (i - 1) * .17, r = rOf(wk(s.due)) + (i - 1) * .03;
-    s.p = [Math.cos(a) * r, 0, Math.sin(a) * r]; s.size = s.kind === 'prova' ? 11 : 7;
-  });
-  const todayP = (() => { const a = angOf(today), r = rOf(wk(today)); return [Math.cos(a) * r, 0, Math.sin(a) * r]; })();
-  const curW = wk(today);
-  const rings = Array.from({ length: W + 1 }, (_, w) => ({ w, r: rOf(w), label: (w === 0 ? 'semana da prova' : w === curW ? 'esta semana' : 'faltam ' + w + ' semanas').toUpperCase() }));
-
+  const groups = [{ k: 'hoje', r: .5, label: 'HOJE', items: ITEMS.filter(x => x.st !== 'pend') },
+                  { k: 'pend', r: .9, label: 'PENDENTES', items: ITEMS.filter(x => x.st === 'pend') }].filter(g => g.items.length);
+  groups.forEach((g, gi) => g.items.forEach((s, i) => {
+    const a = -Math.PI / 2 + gi * .9 + i / g.items.length * TAU;
+    s.p = [Math.cos(a) * g.r, 0, Math.sin(a) * g.r]; s.size = s.kind === 'prova' ? 12 : 9;
+  }));
+  const rings = groups.map(g => ({ r: g.r, label: g.label, cur: g.k === 'hoje' }));
   $('lbl').innerHTML = ITEMS.map(s => `<button type="button" class="lb" data-id="${esc(s.id)}" aria-label="${esc(s.title)}, ${fmt(s.due)}, ${ST[s.st].w.toLowerCase()}"><span class="dot" style="background:${ST[s.st].c}"></span><span class="sh">${esc(/^Treino de /.test(s.title) ? 'Treino do dia' : s.title)}</span><span class="dt">${fmt(s.due)}</span></button>`).join('');
   LBL = ITEMS.map((s, i) => ({ el: $('lbl').children[i], s, x: 0, y: 0, r: 8, vis: 1 }));
   $('lbl').onclick = e => { const b = e.target.closest('.lb'); if (b) openItem(b.dataset.id); };
 
   const canvas = $('sc');
-  Q = FX.orbit(canvas, { yaw: .25, pitch: .62, zoom: 1, spin: .0004, minPitch: .15, maxPitch: 1.2, minZoom: .7, maxZoom: 2.4 });
+  Q = FX.orbit(canvas, { yaw: .25, pitch: .62, zoom: 1, spin: .0006, minPitch: .15, maxPitch: 1.2, minZoom: .7, maxZoom: 2.4 });
   fitQ(innerWidth, innerHeight);
   const hit = (x, y) => { let best = 1e9, id = null; for (const s of ITEMS) { if (!s.sp) continue; const d = Math.hypot(s.sp.x - x, s.sp.y - y); if (d < s.size * s.sp.k + 12 && d < best) { best = d; id = s.id; } } return id; };
   canvas.addEventListener('click', e => { const id = hit(e.clientX, e.clientY); if (id) openItem(id); else if (open) closeItem(); });
@@ -226,7 +213,7 @@ function setupScene(today) {
     for (const R of rings) {
       ctx.beginPath();
       for (let i = 0; i <= 96; i++) { const a = i / 96 * TAU, P = Q.project([Math.cos(a) * R.r, 0, Math.sin(a) * R.r]); i ? ctx.lineTo(P.x, P.y) : ctx.moveTo(P.x, P.y); }
-      const cur = R.w === curW;
+      const cur = R.cur;
       ctx.strokeStyle = cur ? 'rgba(124,157,255,.5)' : 'rgba(255,255,255,.12)'; ctx.lineWidth = cur ? 1.4 : 1; ctx.stroke();
       const L = Q.project([0, 0, R.r]); ctx.fillStyle = cur ? 'rgba(124,157,255,.9)' : 'rgba(128,138,154,.75)'; ctx.fillText(R.label, L.x, L.y + 16);
     }
@@ -237,10 +224,7 @@ function setupScene(today) {
     r = 26 * S0.k; ctx.globalAlpha = .9; ctx.drawImage(glowS('255,235,190'), S0.x - r, S0.y - r, r * 2, r * 2);
     ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
     ctx.fillStyle = '#fff4d6'; ctx.beginPath(); ctx.arc(S0.x, S0.y, 9 * S0.k, 0, TAU); ctx.fill();
-    ctx.font = '600 11px "JetBrains Mono",monospace'; ctx.fillStyle = '#fbc54a'; ctx.fillText('PROVA · 06/12', S0.x, S0.y - 30 * S0.k);
-    // você está aqui
-    const TP = Q.project(todayP);
-    if (!FX.still) for (let i = 0; i < 2; i++) { const v = ((t / 1600) + i * .5) % 1; ctx.strokeStyle = `rgba(124,157,255,${(.7 * (1 - v)).toFixed(3)})`; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(TP.x, TP.y, (12 + 26 * v) * TP.k, 0, TAU); ctx.stroke(); }
+    ctx.font = '600 11px "JetBrains Mono",monospace'; ctx.fillStyle = '#fbc54a'; ctx.fillText('AGORA', S0.x, S0.y - 30 * S0.k);
     // planetas, de trás para a frente
     ITEMS.forEach(s => { s.sp = Q.project(s.p); });
     ITEMS.slice().sort((a, b) => a.sp.z - b.sp.z).forEach(s => {
@@ -252,10 +236,11 @@ function setupScene(today) {
       body.addColorStop(0, '#ffffff'); body.addColorStop(.55, c.c); body.addColorStop(1, `rgba(${c.rgb},.55)`);
       ctx.fillStyle = body; ctx.beginPath(); ctx.arc(P.x, P.y, rr, 0, TAU); ctx.fill();
       if (s.kind === 'prova') { ctx.strokeStyle = `rgba(${c.rgb},.85)`; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.ellipse(P.x, P.y, rr * 1.9, rr * .55, -.35, 0, TAU); ctx.stroke(); }
+      if (s.st === 'today' && !FX.still) { const v = (t / 1600) % 1; ctx.strokeStyle = `rgba(124,157,255,${(.7 * (1 - v)).toFixed(3)})`; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(P.x, P.y, rr + 22 * v * P.k, 0, TAU); ctx.stroke(); }
       if (s.st === 'done' || s.st === 'sent') { ctx.strokeStyle = '#06080c'; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.moveTo(P.x - rr * .4, P.y); ctx.lineTo(P.x - rr * .1, P.y + rr * .32); ctx.lineTo(P.x + rr * .45, P.y - rr * .35); ctx.stroke(); }
     });
     dust.draw(ctx, t, St);
-    for (const l of LBL) { const P = l.s.sp; l.x = P.x; l.y = P.y; l.r = l.s.size * P.k + 5; l.z = P.z; l.vis = l.s.st === 'future' || l.s.st === 'locked' ? .65 : 1; }
+    for (const l of LBL) { const P = l.s.sp; l.x = P.x; l.y = P.y; l.r = l.s.size * P.k + 5; l.z = P.z; l.vis = 1; }
     FX.labels(LBL, { x0: 12, y0: 150, x1: St.W - 12, y1: St.H - 70, gap: 6 });
     FX.tethers(ctx, LBL, s => `rgba(255,255,255,${(.14 * s.vis).toFixed(3)})`);
   };
