@@ -120,6 +120,8 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-of
 .fbk .tip{background:rgba(251,197,74,.07);border:1px solid rgba(251,197,74,.28)}
 .fbk .tag{display:block;margin-bottom:4px}
 .fbk .why .tag{color:#5ee08f}.fbk .tip .tag{color:#fbc54a}
+.fbk .rule{background:rgba(124,157,255,.07);border:1px solid rgba(124,157,255,.3)}.fbk .rule .tag{color:#7c9dff}
+.fbk .trap{background:rgba(255,107,107,.06);border:1px solid rgba(255,107,107,.28)}.fbk .trap .tag{color:#ff6b6b}
 .chrow{display:flex;align-items:center;gap:12px;padding:10px 22px 0}
 .chb{min-height:34px;padding:0 14px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:transparent;font-size:13px;color:var(--soft);transition:border-color 160ms,color 160ms,background 160ms}
 .chb:hover:not(:disabled){border-color:rgba(251,197,74,.6);color:#fbc54a}
@@ -179,7 +181,7 @@ const QS = (DATA.questions || []).map((q, i) => {
   const options = (q.options || []).slice(0, 5).map((o, k) => typeof o === 'string' ? { id: 'ABCDE'[k], label: o, desc: '' } : { id: 'ABCDE'[k], label: o.label, desc: o.desc || '' });
   return { id: String(q.id || 'Q' + (i + 1)), title: q.title || q.short || '', short: q.short || q.title || '', group: q.group, impact: q.impact == null ? 3 : +q.impact,
     deps: (q.deps || []).map(String), options, allowFree: false, rec: '', source: q.source || '',
-    answer: String(q.answer || '').toUpperCase(), why: q.why || '', tip: q.tip || '', texts: (Array.isArray(q.text) ? q.text : q.text ? [q.text] : []), code: q.code || '',
+    answer: String(q.answer || '').toUpperCase(), why: q.why || '', tip: q.tip || '', conceito: q.conceito || '', regra: q.regra || '', armadilha: q.armadilha || '', texts: (Array.isArray(q.text) ? q.text : q.text ? [q.text] : []), code: q.code || '',
     body: [] };
 });
 const byId = {}; QS.forEach(q => { byId[q.id] = q; });
@@ -412,7 +414,15 @@ function updateCard() {
   const nt0 = ch ? 'Por que chutou? (opcional)' : a && a !== q.answer ? 'O que você não sabia ou confundiu? (opcional)' : 'anote uma dúvida (opcional)';
   const ni = $('cp-n'); if (ni.placeholder !== nt0) ni.placeholder = nt0; ni.closest('.note').classList.toggle('ask', ch || (!!a && a !== q.answer));
   const fb = $('cp-fbk');
-  if (a && fb.hidden) { fb.innerHTML = (q.why ? `<div class="box why"><span class="tag">POR QUE É ${esc(q.answer)}</span>${esc(q.why)}</div>` : '') + (q.tip ? `<div class="box tip"><span class="tag">PISTA PARA A PRÓXIMA</span>${esc(q.tip)}</div>` : ''); fb.hidden = !fb.innerHTML; }
+  if (a && fb.hidden) {
+    // explicação em três partes quando existe (Conceito · Regra · Armadilha); senão, a antiga (por quê + pista)
+    const rule = q.regra.match(/^([A-ZÀ-Ú ]{4,}|Sem atalho)[:]\s*(.*)$/);
+    fb.innerHTML = q.conceito
+      ? `<div class="box why"><span class="tag">CONCEITO · A CERTA É ${esc(q.answer)}</span>${esc(q.conceito)}</div>`
+        + (q.regra ? `<div class="box rule"><span class="tag">${rule ? 'REGRA · ' + esc(rule[1].toUpperCase()) : 'REGRA'}</span>${esc(rule ? rule[2] : q.regra)}</div>` : '')
+        + (q.armadilha ? `<div class="box trap"><span class="tag">ARMADILHA</span>${esc(q.armadilha)}</div>` : '')
+      : (q.why ? `<div class="box why"><span class="tag">POR QUE É ${esc(q.answer)}</span>${esc(q.why)}</div>` : '') + (q.tip ? `<div class="box tip"><span class="tag">PISTA PARA A PRÓXIMA</span>${esc(q.tip)}</div>` : '');
+    fb.hidden = !fb.innerHTML; }
   else if (!a) { fb.hidden = true; fb.innerHTML = ''; }
   pc.querySelectorAll('[data-depdot]').forEach(i => { const t = byId[i.dataset.depdot]; if (t) i.style.background = ST[statusOf(t.id)].c; });
   const pending = QS.filter(x => x.id !== q.id && statusOf(x.id) === 'pending').length, more = pending || statusOf(q.id) === 'pending';
