@@ -8,127 +8,264 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="css/base.css">
 <style>
-.login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+body{overflow:hidden}
+#sc{position:fixed;inset:0;width:100%;height:100%;display:block;cursor:grab;touch-action:none}
+#sc.hot{cursor:pointer}
+.login{position:relative;z-index:2;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
 .login .card{width:min(400px,100%);padding:28px;display:flex;flex-direction:column;gap:14px;box-shadow:0 30px 80px rgba(0,0,0,.45),0 50px 120px -30px rgba(124,157,255,.45);border-bottom-color:rgba(124,157,255,.35)}
 .login h1{margin:0;font-size:26px;font-weight:500;letter-spacing:-.02em}
-.login input{min-height:46px;padding:0 14px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.03);color:var(--ink);font-size:16px}
+.pwbox{position:relative}
+.pwbox input{width:100%;min-height:46px;padding:0 48px 0 14px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.03);color:var(--ink);font-size:16px}
+.eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:36px;height:36px;border:none;border-radius:8px;background:transparent;color:var(--dim);display:flex;align-items:center;justify-content:center}
+.eye:hover,.eye[aria-pressed=true]{color:var(--acc)}
 .login .err{color:var(--bad);font-size:13px;min-height:18px}
 .login .pill-btn{justify-content:center}
-.sec{margin-top:30px}
-.sec>.mono{display:block;margin-bottom:12px}
-.hero{padding:22px 22px 20px;display:flex;flex-direction:column;gap:12px;border-bottom-color:rgba(124,157,255,.35);box-shadow:0 30px 80px rgba(0,0,0,.35),0 40px 100px -40px rgba(124,157,255,.45)}
-.hero h2{margin:0;font-size:22px;font-weight:500;letter-spacing:-.01em}
-.hero .meta{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
-.hero .bar{flex:1;min-width:160px}
-.hero .go{align-self:flex-start;margin-top:4px}
-.list{display:flex;flex-direction:column}
-.row{display:flex;align-items:center;gap:14px;min-height:56px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.07);text-decoration:none;transition:background 160ms}
-.row:hover{background:rgba(255,255,255,.03)}
-.row:last-child{border-bottom:none}
-.row .t{flex:1;min-width:0;font-size:15px;font-weight:500}
-.row .d{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.12em;color:var(--dim);white-space:nowrap}
-.row .s{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.12em;white-space:nowrap}
-.dot{flex:none;width:7px;height:7px;border-radius:50%}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
-.stat{padding:16px 18px}
-.stat b{display:block;font-size:28px;font-weight:500;letter-spacing:-.02em}
-.prova{padding:18px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;border-color:rgba(251,197,74,.3)}
-.prova .t{flex:1;min-width:200px}
-.prova h3{margin:4px 0 0;font-size:18px;font-weight:500}
-.empty{padding:18px;color:var(--soft);font-size:14px}
-.dim .row{opacity:.6}
+.hd{position:fixed;top:0;left:0;right:0;z-index:20;padding:28px 28px 0;pointer-events:none;margin:0;display:block}
+.hd-in{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;justify-content:space-between}
+.hd h1{margin:6px 0 10px;font-size:30px;line-height:1.15;font-weight:500;letter-spacing:-.02em;text-shadow:0 0 18px var(--bg)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;pointer-events:auto}
+.chip{display:inline-flex;align-items:center;gap:8px;min-height:30px;padding:0 12px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(10,14,22,.75);backdrop-filter:blur(8px);font-size:12.5px;color:var(--soft)}
+.chip b{color:var(--ink);font-weight:500}
+.chip i{width:7px;height:7px;border-radius:50%}
+button.chip{cursor:pointer}
+button.chip:hover{border-color:rgba(251,197,74,.55)}
+.acts{display:flex;gap:10px;align-items:center;pointer-events:auto}
+.cta{box-shadow:0 0 0 1px rgba(124,157,255,.2),0 10px 40px -10px rgba(124,157,255,.6)}
+.lbl{position:fixed;inset:0;z-index:5;pointer-events:none;overflow:hidden}
+.lb{position:absolute;left:0;top:0;display:inline-flex;align-items:center;gap:8px;max-width:230px;padding:5px 12px 5px 10px;border-radius:999px;background:rgba(10,14,22,.82);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(8px);font-size:12.5px;line-height:1.3;white-space:nowrap;opacity:var(--vis,1);pointer-events:auto;cursor:pointer;color:var(--ink);transition:border-color 200ms,box-shadow 200ms}
+.lb .dot{flex:none;width:6px;height:6px;border-radius:50%}
+.lb .sh{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.lb .dt{flex:none;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;color:var(--dim)}
+.lb.on,.lb:focus-visible{outline:none;border-color:rgba(124,157,255,.65);box-shadow:0 0 0 3px rgba(124,157,255,.15)}
+.lb.off{pointer-events:none}
+.panel{position:fixed;right:28px;bottom:28px;z-index:30;width:min(380px,calc(100vw - 32px));padding:20px 22px;display:flex;flex-direction:column;gap:12px;background:#0a0d14;border:1px solid var(--line);border-bottom-color:rgba(124,157,255,.35);border-radius:14px;box-shadow:0 30px 80px rgba(0,0,0,.45),0 50px 120px -30px rgba(124,157,255,.45);opacity:0;transform:translateY(10px);pointer-events:none;transition:opacity 260ms,transform 260ms}
+.panel.on{opacity:1;transform:none;pointer-events:auto}
+.panel h2{margin:0;padding-right:30px;font-size:21px;line-height:1.3;font-weight:500;letter-spacing:-.01em}
+.panel p{margin:0;font-size:14px;line-height:1.55;color:var(--soft)}
+.panel .row2{display:flex;gap:12px;align-items:center}
+.panel .bar{flex:1}
+.panel .x{position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:transparent}
+.panel .pill-btn{align-self:flex-start}
+.pill-btn[aria-disabled=true]{opacity:.45;cursor:not-allowed;pointer-events:none}
+.legend{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:10;display:flex;gap:16px;flex-wrap:wrap;justify-content:center;padding:8px 16px;border-radius:999px;background:rgba(10,14,22,.7);border:1px solid rgba(255,255,255,.08);backdrop-filter:blur(8px)}
+.legend span{display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase}
+.legend i{width:8px;height:8px;border-radius:50%}
+.list{display:none}
+@media (max-width:899px){
+  body{overflow:auto}.lbl,.legend{display:none}#sc{pointer-events:none}
+  .hd{position:static;padding:24px 20px 0}.list{display:flex;flex-direction:column;padding:16px 20px 120px;position:relative;z-index:2}
+  .li{display:flex;align-items:center;gap:12px;min-height:54px;padding:10px 4px;border-bottom:1px solid rgba(255,255,255,.07);text-decoration:none}
+  .li .t{flex:1;font-size:15px}.li .d{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--dim)}
+  .panel{left:12px;right:12px;bottom:12px;width:auto}
+}
 </style>
 </head>
 <body>
-<canvas id="sc" class="bg" aria-hidden="true"></canvas>
+<canvas id="sc" aria-hidden="true"></canvas>
+<div class="lbl" id="lbl" role="group" aria-label="Treinos e provas no caminho até a prova"></div>
 <main id="app" aria-live="polite"></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js"></script>
 <script src="js/fx.js"></script>
 <script src="js/db.js"></script>
-<script>if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) { window.HUB_DOC = Object.assign({ id: "vestibulinho-index", title: document.title }, window.HUB_DOC || {}, { type: "index" }); document.addEventListener("app-ready", () => { if (document.querySelector("script[src='/_local/ajustes.js']")) return; const s = document.createElement("script"); s.src = "/_local/ajustes.js"; document.body.appendChild(s); }); }</script>
+<script>if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) { window.HUB_DOC = Object.assign({ id: "vestibulinho-index", title: document.title }, window.HUB_DOC || {}, { type: "index" }); document.addEventListener("app-ready", () => { if (document.querySelector("script[src='/_local/ajustes.js']")) { dispatchEvent(new Event('resize')); return; } const s = document.createElement("script"); s.src = "/_local/ajustes.js"; document.body.appendChild(s); }); }</script>
 <script>
 (function () {
 'use strict';
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const { TAU } = FX;
 const PROVA_REAL = '2026-12-06';
 const fmt = d => { const [y, m, dd] = d.split('-'); return dd + '/' + m; };
 const days = (a, b) => Math.round((new Date(b + 'T12:00') - new Date(a + 'T12:00')) / 864e5);
+const ST = {
+  today:  { c: '#7c9dff', rgb: '124,157,255', w: 'HOJE' },
+  done:   { c: '#5ee08f', rgb: '94,224,143',  w: 'FEITO' },
+  pend:   { c: '#fbc54a', rgb: '251,197,74',  w: 'PENDENTE' },
+  future: { c: '#6b7586', rgb: '107,117,134', w: 'PRÓXIMO' },
+  open:   { c: '#ff9f5a', rgb: '255,159,90',  w: 'PROVA ABERTA' },
+  locked: { c: '#4d5562', rgb: '77,85,98',    w: 'PROVA BLOQUEADA' },
+  sent:   { c: '#5ee08f', rgb: '94,224,143',  w: 'PROVA ENVIADA' }
+};
 
-// cena de fundo: céu e poeira dos templates
-const sky = FX.sky({ count: 200, color: '207,216,230', seed: 13 });
+// Uma só cena no canvas; o que ela desenha muda entre login (céu) e Hoje (sistema orbital).
+const sky = FX.sky({ count: 220, color: '207,216,230', seed: 13 });
 const dust = FX.dust({ color: '207,216,230', near: '124,157,255', density: 18000, min: 30, max: 90, repel: 130, seed: 5 });
-FX.stage($('sc'), { draw(ctx, t, St) { sky.draw(ctx, t, St, 0, 0); dust.draw(ctx, t, St); } });
+let drawScene = (ctx, t, St) => { sky.draw(ctx, t, St, 0, 0); dust.draw(ctx, t, St); };
+let Q = null;
+const fitQ = (W, H) => { if (Q) { Q.cx = W * .5; Q.cy = H * .58; Q.R = Math.min(W * .4, H * .42); } };
+FX.stage($('sc'), { onResize: St => fitQ(St.W, St.H), draw: (ctx, t, St) => drawScene(ctx, t, St) });
 
+/* ---------------- login ---------------- */
+const EYE = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
 function loginView() {
   $('app').innerHTML = `<div class="login"><form class="card" id="f">
-    <span class="mono">Vestibulinho Etec · treino</span>
-    <h1>Entrar</h1>
+    <span class="mono">Vestibulinho Etec · treino</span><h1>Entrar</h1>
     <label class="sr" for="pw">Senha</label>
-    <input id="pw" type="password" placeholder="senha" autocomplete="current-password" autofocus>
+    <div class="pwbox"><input id="pw" type="password" placeholder="senha" autocomplete="current-password" autofocus>
+      <button class="eye" id="eye" type="button" aria-label="Mostrar senha" aria-pressed="false">${EYE}</button></div>
     <div class="err" id="err" role="alert"></div>
     <button class="pill-btn" type="submit">Entrar</button></form></div>`;
-  document.dispatchEvent(new Event('app-ready'));
+  $('eye').addEventListener('click', () => { const on = $('pw').type === 'password'; $('pw').type = on ? 'text' : 'password'; $('eye').setAttribute('aria-pressed', String(on)); $('eye').setAttribute('aria-label', on ? 'Esconder senha' : 'Mostrar senha'); $('pw').focus(); });
   $('f').addEventListener('submit', async e => {
     e.preventDefault(); $('err').textContent = '';
     try { await DB.login($('pw').value); start(); }
     catch (err) { $('err').textContent = /invalid/i.test(err.message) ? 'Senha errada. Tenta de novo.' : 'Não consegui entrar: ' + err.message; }
   });
+  document.dispatchEvent(new Event('app-ready'));
 }
 
+/* ---------------- dados ---------------- */
 function streak(subs, treinoIds) {
   const set = new Set(subs.filter(s => treinoIds.has(s.set_id)).map(s => DB.iso(new Date(s.submitted_at))));
   let d = new Date(), n = 0;
-  if (!set.has(DB.iso(d))) d.setDate(d.getDate() - 1);   // hoje ainda pode entrar
+  if (!set.has(DB.iso(d))) d.setDate(d.getDate() - 1);
   while (set.has(DB.iso(d))) { n++; d.setDate(d.getDate() - 1); }
   return n;
 }
+function build(o, today) {
+  const sub = new Map(o.submissions.map(s => [s.set_id, s.submitted_at]));
+  const cnt = {}; o.answers.forEach(a => { if (a.choice) cnt[a.set_id] = (cnt[a.set_id] || 0) + 1; });
+  return o.sets.map(s => {
+    const n = cnt[s.id] || 0;
+    const st = s.kind === 'prova' ? (sub.has(s.id) ? 'sent' : s.due > today ? 'locked' : 'open')
+      : (sub.has(s.id) || n >= s.total) ? 'done' : s.due === today ? 'today' : s.due < today ? 'pend' : 'future';
+    return Object.assign({}, s, { n, st });
+  });
+}
+const link = s => (s.kind === 'prova' ? 'prova.html' : 'treino.html') + '?set=' + encodeURIComponent(s.id);
 
+/* ---------------- Hoje ---------------- */
+let ITEMS = [], LBL = [], open = null, hover = null;
 async function hoje() {
-  const { sets, answers, submissions } = await DB.overview();
   const today = DB.today();
-  const sub = new Map(submissions.map(s => [s.set_id, s.submitted_at]));
-  const cnt = {}; answers.forEach(a => { if (a.choice) cnt[a.set_id] = (cnt[a.set_id] || 0) + 1; });
-  const treinos = sets.filter(s => s.kind === 'treino').map(s => Object.assign(s, { n: cnt[s.id] || 0, done: sub.has(s.id) || (cnt[s.id] || 0) >= s.total }));
-  const provas = sets.filter(s => s.kind === 'prova').map(s => Object.assign(s, { n: cnt[s.id] || 0, done: sub.has(s.id) }));
-  const todo = treinos.filter(s => !s.done);
-  const doHoje = todo.filter(s => s.due === today);
-  const pend = todo.filter(s => s.due < today);
-  const prox = todo.filter(s => s.due > today);
-  const feitos = treinos.filter(s => s.done);
-  const hero = doHoje[0] || pend[0] || prox[0];
-  const prova = provas.find(p => !p.done);
-  const seq = streak(submissions, new Set(treinos.map(t => t.id)));
+  const o = await DB.overview();
+  ITEMS = build(o, today);
+  const treinos = ITEMS.filter(s => s.kind === 'treino');
+  const pend = treinos.filter(s => s.st === 'pend'), hojeT = treinos.filter(s => s.st === 'today');
+  const next = ITEMS.find(s => s.st === 'open') || hojeT[0] || pend[0] || treinos.find(s => s.st === 'future');
+  const seq = streak(o.submissions, new Set(treinos.map(t => t.id)));
   const faltam = days(today, PROVA_REAL);
-  const link = s => (s.kind === 'prova' ? 'prova.html' : 'treino.html') + '?set=' + encodeURIComponent(s.id);
-  const row = (s, tone) => `<a class="row" href="${link(s)}"><span class="dot" style="background:${tone}"></span><span class="t">${esc(s.title)}</span><span class="d">${fmt(s.due)}</span><span class="s" style="color:${tone}">${s.n}/${s.total}</span></a>`;
-  const heroLabel = !hero ? '' : hero.due === today ? 'TREINO DE HOJE' : hero.due < today ? 'COMECE POR AQUI' : 'ADIANTE UM TREINO';
-  $('app').innerHTML = `<div class="page">
-  <header class="hd"><div><span class="mono">Vestibulinho · ${fmt(today)}</span><h1>${faltam > 0 ? faltam + ' dias para a prova' : faltam === 0 ? 'Hoje é a prova. Boa!' : 'Prova feita'}</h1></div>
-    <div style="display:flex;gap:10px;align-items:center"><span id="hub-dock" style="display:inline-flex;align-items:center"></span><button class="pill-btn ghost" id="out" type="button">Sair</button></div></header>
-  <div class="stats">
-    <div class="card stat"><span class="mono">Sequência</span><b style="color:var(--ok)">${seq} ${seq === 1 ? 'dia' : 'dias'}</b></div>
-    <div class="card stat"><span class="mono">Treinos feitos</span><b>${feitos.length}</b></div>
-    <div class="card stat"><span class="mono">Pendentes</span><b style="color:${pend.length ? 'var(--warn)' : 'var(--ink)'}">${pend.length}</b></div>
-  </div>
-  <section class="sec">${hero ? `<div class="card hero"><span class="mono" style="color:var(--acc)">${heroLabel}</span><h2>${esc(hero.title)}</h2>
-    <div class="meta"><div class="bar"><i style="width:${hero.total ? hero.n / hero.total * 100 : 0}%"></i></div><span class="mono">${hero.n}/${hero.total} respondidas</span></div>
-    <a class="pill-btn go" href="${link(hero)}">${hero.n ? 'Continuar →' : 'Começar →'}</a></div>`
-    : `<div class="card empty">Tudo feito por agora. Descansa, que amanhã tem mais.</div>`}</section>
-  ${prova ? `<section class="sec"><span class="mono">Próxima prova completa</span><div class="card prova"><div class="t"><span class="mono" style="color:var(--warn)">${prova.due <= today ? 'É HOJE' : fmt(prova.due)}</span><h3>${esc(prova.title)}</h3></div>
-    <span class="mono">${prova.n}/${prova.total} marcadas</span><a class="pill-btn" href="${link(prova)}">${prova.n ? 'Continuar' : 'Abrir'}</a></div></section>` : ''}
-  ${pend.length ? `<section class="sec"><span class="mono">Pendentes · sem pressa, um de cada vez</span><div class="card list">${pend.map(s => row(s, 'var(--warn)')).join('')}</div></section>` : ''}
-  ${prox.length ? `<section class="sec dim"><span class="mono">Próximos</span><div class="card list">${prox.slice(0, 6).map(s => row(s, 'var(--dim)')).join('')}</div></section>` : ''}
-  ${feitos.length ? `<section class="sec"><span class="mono">Feitos</span><div class="card list">${feitos.slice().reverse().map(s => row(s, 'var(--ok)')).join('')}</div></section>` : ''}
-  </div>`;
+  const ctaText = !next ? '' : next.kind === 'prova' ? 'Fazer a prova de hoje →' : next.st === 'today' ? (next.n ? 'Continuar o treino de hoje →' : 'Começar o treino de hoje →') : next.st === 'pend' ? 'Fazer um pendente →' : 'Adiantar o próximo →';
+  $('app').innerHTML = `
+  <header class="hd"><div class="hd-in">
+    <div><span class="mono">Vestibulinho · ${fmt(today)}</span>
+      <h1>${faltam > 0 ? faltam + (faltam === 1 ? ' dia' : ' dias') + ' até a prova' : faltam === 0 ? 'Hoje é a prova. Boa!' : 'Prova feita'}</h1>
+      <div class="chips">
+        <span class="chip" title="Dias seguidos em que você terminou pelo menos um treino. Não deixa zerar!"><i style="background:var(--ok)"></i>Sequência: <b>${seq} ${seq === 1 ? 'dia' : 'dias'}</b> seguidos</span>
+        ${pend.length ? `<button class="chip" id="pendchip" type="button" title="Treinos de dias que já passaram. Sem pressa: um de cada vez."><i style="background:var(--warn)"></i><b>${pend.length}</b> ${pend.length === 1 ? 'pendente' : 'pendentes'}</button>` : `<span class="chip"><i style="background:var(--ok)"></i>nada pendente</span>`}
+      </div></div>
+    <div class="acts">${next ? `<a class="pill-btn cta" href="${link(next)}">${ctaText}</a>` : ''}<span id="hub-dock" style="display:inline-flex;align-items:center"></span><button class="pill-btn ghost" id="out" type="button">Sair</button></div>
+  </div></header>
+  <nav class="list" id="list" aria-label="Treinos e provas">${ITEMS.map(s => `<a class="li" href="${link(s)}"><span style="width:8px;height:8px;border-radius:50%;background:${ST[s.st].c}"></span><span class="t">${esc(s.title)}</span><span class="d">${fmt(s.due)} · ${ST[s.st].w}</span></a>`).join('')}</nav>
+  <div class="legend" aria-hidden="true">${['today', 'done', 'pend', 'future', 'open', 'locked'].map(k => `<span><i style="background:${ST[k].c}"></i>${ST[k].w}</span>`).join('')}</div>
+  <section class="panel" id="panel" role="dialog" aria-labelledby="ptitle"></section>`;
   $('out').addEventListener('click', () => DB.logout());
+  if ($('pendchip')) $('pendchip').addEventListener('click', () => openItem(pend[0].id));
+  setupScene(today);
   document.dispatchEvent(new Event('app-ready'));
-  dispatchEvent(new Event('resize'));   // Ajustes local: encaixa o lápis no cabeçalho
 }
 
+function panelHTML(s) {
+  const S = ST[s.st], lockedP = s.st === 'locked';
+  const desc = s.kind === 'prova'
+    ? (lockedP ? `Prova completa de 50 questões. Libera no dia ${fmt(s.due)}.` : s.st === 'sent' ? 'Enviada. A correção chega no próximo treino.' : 'Prova completa de 50 questões, sem cronômetro. Pode fechar e voltar depois.')
+    : s.st === 'done' ? 'Feito! Dá para abrir de novo e reler as explicações.' : s.st === 'pend' ? 'Ficou para trás, sem problema. Faz quando der.' : s.st === 'today' ? 'O treino de hoje. Um bloco de cada vez.' : 'Ainda não é o dia, mas dá para adiantar.';
+  const btn = lockedP ? `<span class="pill-btn" aria-disabled="true">Abre em ${fmt(s.due)}</span>`
+    : `<a class="pill-btn" href="${link(s)}">${s.kind === 'prova' ? (s.st === 'sent' ? 'Ver a folha' : s.n ? 'Continuar a prova →' : 'Abrir a prova →') : s.st === 'done' ? 'Rever' : s.n ? 'Continuar →' : 'Começar →'}</a>`;
+  return `<button class="x" id="px" type="button" aria-label="Fechar">×</button>
+    <span class="mono" style="color:${S.c}">${S.w} · ${fmt(s.due)}</span><h2 id="ptitle">${esc(s.title)}</h2><p>${desc}</p>
+    <div class="row2"><div class="bar"><i style="width:${s.total ? s.n / s.total * 100 : 0}%;background:${S.c};box-shadow:0 0 10px rgba(${S.rgb},.6)"></i></div><span class="mono">${s.n}/${s.total}</span></div>${btn}`;
+}
+function openItem(id) {
+  const s = ITEMS.find(x => x.id === id); if (!s) return;
+  open = id; $('panel').innerHTML = panelHTML(s); $('panel').classList.add('on');
+  $('px').addEventListener('click', closeItem);
+  LBL.forEach(l => l.el.classList.toggle('on', l.s.id === id));
+  if (Q && s.p) Q.fly({ yaw: Math.atan2(s.p[0], -s.p[2]) }, 900);   // traz o planeta para a frente
+  FX.invalidate();
+}
+function closeItem() { open = null; $('panel').classList.remove('on'); LBL.forEach(l => l.el.classList.remove('on')); FX.invalidate(); }
+addEventListener('keydown', e => { if (e.key === 'Escape' && open) closeItem(); });
+
+/* ---------------- cena: a prova é o sol; cada semana até ela, uma órbita ---------------- */
+const glowCache = {};
+function glowS(rgb) { if (glowCache[rgb]) return glowCache[rgb]; const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'), g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, `rgba(${rgb},1)`); g.addColorStop(.3, `rgba(${rgb},.4)`); g.addColorStop(1, `rgba(${rgb},0)`); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return (glowCache[rgb] = c); }
+function setupScene(today) {
+  const monday = d => { const x = new Date(d + 'T12:00'); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x; };
+  const wk = d => Math.max(0, Math.round((monday(PROVA_REAL) - monday(d)) / (7 * 864e5)));   // 0 = semana da prova
+  const W = Math.max(1, wk(today), ...ITEMS.map(s => wk(s.due)));
+  const rOf = w => .3 + .7 * (w / W);
+  const angOf = d => -Math.PI / 2 + ((new Date(d + 'T12:00').getDay() + 6) % 7) / 7 * TAU;   // seg..dom pela órbita
+  const perDay = {};
+  ITEMS.forEach(s => {
+    const i = perDay[s.due] = (perDay[s.due] || 0) + 1;
+    const a = angOf(s.due) + (i - 1) * .17, r = rOf(wk(s.due)) + (i - 1) * .03;
+    s.p = [Math.cos(a) * r, 0, Math.sin(a) * r]; s.size = s.kind === 'prova' ? 11 : 7;
+  });
+  const todayP = (() => { const a = angOf(today), r = rOf(wk(today)); return [Math.cos(a) * r, 0, Math.sin(a) * r]; })();
+  const curW = wk(today);
+  const rings = Array.from({ length: W + 1 }, (_, w) => ({ w, r: rOf(w), label: (w === 0 ? 'semana da prova' : w === curW ? 'esta semana' : 'faltam ' + w + ' semanas').toUpperCase() }));
+
+  $('lbl').innerHTML = ITEMS.map(s => `<button type="button" class="lb" data-id="${esc(s.id)}" aria-label="${esc(s.title)}, ${fmt(s.due)}, ${ST[s.st].w.toLowerCase()}"><span class="dot" style="background:${ST[s.st].c}"></span><span class="sh">${esc(/^Treino de /.test(s.title) ? 'Treino do dia' : s.title)}</span><span class="dt">${fmt(s.due)}</span></button>`).join('');
+  LBL = ITEMS.map((s, i) => ({ el: $('lbl').children[i], s, x: 0, y: 0, r: 8, vis: 1 }));
+  $('lbl').onclick = e => { const b = e.target.closest('.lb'); if (b) openItem(b.dataset.id); };
+
+  const canvas = $('sc');
+  Q = FX.orbit(canvas, { yaw: .25, pitch: .62, zoom: 1, spin: .0004, minPitch: .15, maxPitch: 1.2, minZoom: .7, maxZoom: 2.4 });
+  fitQ(innerWidth, innerHeight);
+  const hit = (x, y) => { let best = 1e9, id = null; for (const s of ITEMS) { if (!s.sp) continue; const d = Math.hypot(s.sp.x - x, s.sp.y - y); if (d < s.size * s.sp.k + 12 && d < best) { best = d; id = s.id; } } return id; };
+  canvas.addEventListener('click', e => { const id = hit(e.clientX, e.clientY); if (id) openItem(id); else if (open) closeItem(); });
+  canvas.addEventListener('pointermove', e => { const id = hit(e.clientX, e.clientY); if (id !== hover) { hover = id; canvas.classList.toggle('hot', !!id); LBL.forEach(l => l.el.classList.toggle('on', l.s.id === id || l.s.id === open)); FX.invalidate(); } });
+
+  drawScene = (ctx, t, St) => {
+    sky.draw(ctx, t, St, -Q.yaw * 80, Q.pitch * 40);
+    if (innerWidth < 900) { dust.draw(ctx, t, St); return; }
+    Q.update();
+    // órbitas = semanas
+    ctx.font = '500 10px "JetBrains Mono",monospace'; ctx.textAlign = 'center';
+    for (const R of rings) {
+      ctx.beginPath();
+      for (let i = 0; i <= 96; i++) { const a = i / 96 * TAU, P = Q.project([Math.cos(a) * R.r, 0, Math.sin(a) * R.r]); i ? ctx.lineTo(P.x, P.y) : ctx.moveTo(P.x, P.y); }
+      const cur = R.w === curW;
+      ctx.strokeStyle = cur ? 'rgba(124,157,255,.5)' : 'rgba(255,255,255,.12)'; ctx.lineWidth = cur ? 1.4 : 1; ctx.stroke();
+      const L = Q.project([0, 0, R.r]); ctx.fillStyle = cur ? 'rgba(124,157,255,.9)' : 'rgba(128,138,154,.75)'; ctx.fillText(R.label, L.x, L.y + 16);
+    }
+    // sol = a prova de 06/12
+    const S0 = Q.project([0, 0, 0]), pulse = FX.still ? 1 : 1 + .06 * Math.sin(t * .002);
+    ctx.globalCompositeOperation = 'lighter';
+    let r = 72 * S0.k * pulse; ctx.globalAlpha = .55; ctx.drawImage(glowS('251,197,74'), S0.x - r, S0.y - r, r * 2, r * 2);
+    r = 26 * S0.k; ctx.globalAlpha = .9; ctx.drawImage(glowS('255,235,190'), S0.x - r, S0.y - r, r * 2, r * 2);
+    ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+    ctx.fillStyle = '#fff4d6'; ctx.beginPath(); ctx.arc(S0.x, S0.y, 9 * S0.k, 0, TAU); ctx.fill();
+    ctx.font = '600 11px "JetBrains Mono",monospace'; ctx.fillStyle = '#fbc54a'; ctx.fillText('PROVA · 06/12', S0.x, S0.y - 30 * S0.k);
+    // você está aqui
+    const TP = Q.project(todayP);
+    if (!FX.still) for (let i = 0; i < 2; i++) { const v = ((t / 1600) + i * .5) % 1; ctx.strokeStyle = `rgba(124,157,255,${(.7 * (1 - v)).toFixed(3)})`; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(TP.x, TP.y, (12 + 26 * v) * TP.k, 0, TAU); ctx.stroke(); }
+    // planetas, de trás para a frente
+    ITEMS.forEach(s => { s.sp = Q.project(s.p); });
+    ITEMS.slice().sort((a, b) => a.sp.z - b.sp.z).forEach(s => {
+      const P = s.sp, c = ST[s.st], f = s.id === open || s.id === hover ? 1.35 : 1, rr = s.size * P.k * f;
+      ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = s.st === 'future' || s.st === 'locked' ? .35 : .8;
+      const gr = rr * (s.st === 'today' || s.st === 'open' ? 4.2 : 3); ctx.drawImage(glowS(c.rgb), P.x - gr, P.y - gr, gr * 2, gr * 2);
+      ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+      const body = ctx.createRadialGradient(P.x - rr * .35, P.y - rr * .4, 0, P.x, P.y, rr);
+      body.addColorStop(0, '#ffffff'); body.addColorStop(.55, c.c); body.addColorStop(1, `rgba(${c.rgb},.55)`);
+      ctx.fillStyle = body; ctx.beginPath(); ctx.arc(P.x, P.y, rr, 0, TAU); ctx.fill();
+      if (s.kind === 'prova') { ctx.strokeStyle = `rgba(${c.rgb},.85)`; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.ellipse(P.x, P.y, rr * 1.9, rr * .55, -.35, 0, TAU); ctx.stroke(); }
+      if (s.st === 'done' || s.st === 'sent') { ctx.strokeStyle = '#06080c'; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.moveTo(P.x - rr * .4, P.y); ctx.lineTo(P.x - rr * .1, P.y + rr * .32); ctx.lineTo(P.x + rr * .45, P.y - rr * .35); ctx.stroke(); }
+    });
+    dust.draw(ctx, t, St);
+    for (const l of LBL) { const P = l.s.sp; l.x = P.x; l.y = P.y; l.r = l.s.size * P.k + 5; l.z = P.z; l.vis = l.s.st === 'future' || l.s.st === 'locked' ? .65 : 1; }
+    FX.labels(LBL, { x0: 12, y0: 150, x1: St.W - 12, y1: St.H - 70, gap: 6 });
+    FX.tethers(ctx, LBL, s => `rgba(255,255,255,${(.14 * s.vis).toFixed(3)})`);
+  };
+  FX.invalidate();
+}
+
+/* ---------------- início ---------------- */
 async function start() {
   try { if (!(await DB.session())) return loginView(); await hoje(); }
-  catch (err) { $('app').innerHTML = `<div class="page"><div class="card empty">Não consegui carregar: ${esc(err.message)}. <a href="./">Tentar de novo</a></div></div>`; }
+  catch (err) { $('app').innerHTML = `<div class="page" style="position:relative;z-index:2"><div class="card" style="padding:18px">Não consegui carregar: ${esc(err.message)}. <a href="./">Tentar de novo</a></div></div>`; }
 }
 start();
 })();

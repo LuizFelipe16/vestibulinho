@@ -38,7 +38,7 @@
     save: p => sync(p),
     copy: () => { location.href = './'; }
   };
-  window.SET_DATA = Object.assign({}, set.data, { title: set.title, copyLabel: '← Hoje' });
+  window.SET_DATA = Object.assign({}, set.data, { title: set.title, copyLabel: '← Voltar' });
   document.title = set.title + ' · Vestibulinho';
   window.startTreino();
 })();

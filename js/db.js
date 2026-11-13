@@ -37,7 +37,7 @@
   }
   function flush() { chain = chain.then(run, run); return chain; }
 
-  window.DB = {
+  const REAL = {
     sb, iso,
     today: () => iso(new Date()),
     async session() { const { data } = await sb.auth.getSession(); return data.session; },
@@ -84,6 +84,16 @@
     pending: () => queue.size > 0 || running || waits.size > 0,
     status
   };
+  // Rodando local (tools/plataforma/serve.py): dados falsos, a não ser que a aba tenha aberto com ?real=1.
+  const local = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+  try { if (/[?&]real=1/.test(location.search)) sessionStorage.setItem('vestibulinho:real', '1'); } catch (e) {}
+  let useMock = local; try { useMock = local && !sessionStorage.getItem('vestibulinho:real'); } catch (e) {}
+  if (useMock) {
+    let m = null; const ready = import('/_local/mock.js').then(x => x.make({ iso, status })).then(x => { m = x; });
+    const SYNC = { iso, status, today: () => iso(new Date()), pending: () => (m ? m.pending() : false) };
+    window.DB = new Proxy({}, { get: (_, k) => k in SYNC ? (m && k !== 'iso' && k !== 'status' ? m[k] : SYNC[k])
+      : (...a) => m ? m[k](...a) : ready.then(() => m[k](...a)) });
+  } else window.DB = REAL;
   addEventListener('pagehide', () => window.DB.now());
   addEventListener('beforeunload', e => { window.DB.now(); if (window.DB.pending()) { e.preventDefault(); e.returnValue = ''; } });
 })();

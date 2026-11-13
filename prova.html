@@ -33,6 +33,9 @@ html,body{height:100%;overflow:hidden}
 .q.ask .ni{border-color:rgba(251,197,74,.45)}
 .sent{padding:14px 18px;margin:14px 18px;border-radius:10px;border:1px solid rgba(94,224,143,.35);background:rgba(94,224,143,.07);font-size:14px;line-height:1.5}
 .locked .lt,.locked .ch{cursor:default}
+.pill-btn:disabled{opacity:.45;cursor:not-allowed}
+.lockmsg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;text-align:center;color:var(--soft);font-size:15px}
+.lockmsg b{font-size:26px;font-weight:500;color:var(--ink)}
 dialog{border:1px solid var(--line);border-radius:14px;background:#0a0d14;color:var(--ink);padding:24px;max-width:420px;box-shadow:0 30px 80px rgba(0,0,0,.6)}
 dialog::backdrop{background:rgba(6,8,12,.75)}
 dialog h2{margin:0 0 10px;font-size:20px;font-weight:500}
@@ -44,7 +47,7 @@ dialog .acts{display:flex;gap:10px;justify-content:flex-end}
 <body>
 <header class="top"><div class="t"><span class="mono" id="eb">Prova completa</span><h1 id="title">Carregando…</h1></div>
   <div class="bar" role="progressbar" aria-label="Questões marcadas"><i id="bar" style="width:0"></i></div><span class="mono" id="cnt"></span>
-  <a class="pill-btn ghost" id="open" target="_blank" rel="noopener">Abrir PDF em outra aba</a><a class="pill-btn ghost" href="./">← Hoje</a><button class="pill-btn" id="send" type="button" hidden>Enviar prova</button><span id="hub-dock" style="display:inline-flex;align-items:center"></span></header>
+  <a class="pill-btn ghost" href="./">← Voltar</a><button class="pill-btn" id="send" type="button" hidden disabled title="Marque todas as questões para enviar">Enviar prova</button><span id="hub-dock" style="display:inline-flex;align-items:center"></span></header>
 <div class="wrap"><iframe class="pdf" id="pdf" title="Caderno da prova"></iframe><aside class="folha" id="folha" aria-label="Folha de respostas"></aside></div>
 <dialog id="dlg"><h2>Enviar a prova?</h2><p id="dlgp"></p><div class="acts"><button class="pill-btn ghost" id="no" type="button">Voltar</button><button class="pill-btn" id="yes" type="button">Enviar</button></div></dialog>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js"></script>
@@ -64,14 +67,15 @@ const st = {}; for (let i = 1; i <= N; i++) st['Q' + String(i).padStart(2, '0')]
 answers.forEach(a => { if (st[a.q_id]) Object.assign(st[a.q_id], { choice: a.choice, chute: a.chute, note: a.note || '' }); });
 $('title').textContent = set.title; document.title = set.title + ' · Vestibulinho';
 const pdf = /^provas\/[\w.-]+\.pdf$/.test(set.data.pdf) ? set.data.pdf : 'about:blank';
-$('pdf').src = pdf + '#view=FitH'; $('open').href = pdf;
+const locked = set.due > DB.today();
+if (!locked) $('pdf').src = pdf + '#view=FitH';
 
 function render() {
   const lock = !!submitted;
   $('folha').classList.toggle('locked', lock);
   $('folha').innerHTML = `<div class="fh"><span class="mono">Folha de respostas</span><p>${lock
       ? 'Prova enviada. A correção chega no próximo treino.'
-      : 'Marque aqui conforme for fazendo. Tudo fica salvo: pode fechar e voltar depois. Se for chutar, marque <b>chute</b> e conte por quê na <b>nota</b>.'}</p></div>`
+      : 'Marque aqui conforme for fazendo. Tudo fica salvo: pode fechar e voltar depois. Se for chutar, marque <b>chute</b> e conte por quê na <b>nota</b>. Só dá para enviar com todas marcadas: na prova real, nunca deixe em branco.'}</p></div>`
     + (lock ? `<div class="sent">Enviada em ${new Date(submitted).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}. Boa!</div>` : '')
     + Object.keys(st).map(q => { const s = st[q];
       return `<div class="q${s.note ? ' open' : ''}${s.chute ? ' ask' : ''}" data-q="${q}"><div class="ql"><span class="qn">${q.slice(1)}</span>`
@@ -83,7 +87,7 @@ function render() {
 function count() {
   const n = Object.values(st).filter(s => s.choice).length;
   $('cnt').textContent = n + '/' + N + ' marcadas'; $('bar').style.width = (n / N * 100) + '%';
-  $('send').hidden = !!submitted; $('eb').textContent = submitted ? 'Prova enviada' : 'Prova completa · sem cronômetro';
+  $('send').hidden = !!submitted; $('send').disabled = n < N; $('send').title = n < N ? 'Faltam ' + (N - n) + ' para poder enviar' : 'Enviar prova'; $('eb').textContent = submitted ? 'Prova enviada' : 'Prova completa · sem cronômetro';
 }
 const save = q => DB.save(session.user.id, id, q, { choice: st[q].choice, chute: st[q].chute, note: st[q].note.trim() || null });
 $('folha').addEventListener('click', e => {
@@ -102,8 +106,8 @@ $('folha').addEventListener('input', e => {
   DB.later(id + '|' + q, () => save(q));
 });
 $('send').addEventListener('click', () => {
-  const blank = Object.values(st).filter(s => !s.choice).length;
-  $('dlgp').innerHTML = blank ? `Faltam <b>${blank}</b> em branco. Na prova de verdade, nunca deixe em branco: chute e marque <b>chute</b>. Depois de enviar, não dá para mudar.` : 'Todas marcadas. Depois de enviar, não dá para mudar.';
+  if (Object.values(st).some(s => !s.choice)) return;
+  $('dlgp').innerHTML = 'Todas as ' + N + ' marcadas. Depois de enviar, não dá para mudar.';
   $('dlg').showModal();
 });
 $('no').addEventListener('click', () => $('dlg').close());
@@ -112,7 +116,12 @@ $('yes').addEventListener('click', async () => {
   try { await DB.submit(id); submitted = new Date().toISOString(); $('dlg').close(); render(); }
   catch (e) { $('dlgp').textContent = 'Não consegui enviar: ' + e.message + '. Tenta de novo.'; }
 });
-render();
+if (locked) {
+  const [y, m, d] = set.due.split('-');
+  $('eb').textContent = 'Prova completa · bloqueada';
+  document.querySelector('.wrap').innerHTML = `<div class="lockmsg"><span class="mono">Abre no dia</span><b>${d}/${m}</b><span>A prova completa só libera no dia marcado. Até lá, foco nos treinos.</span><a class="pill-btn" href="./">← Voltar</a></div>`;
+  $('cnt').textContent = ''; $('send').hidden = true;
+} else render();
 })();
 </script>
 </body></html>
