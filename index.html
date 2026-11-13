@@ -50,6 +50,18 @@ button.chip:hover{border-color:rgba(251,197,74,.55)}
 .legend{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:10;display:flex;gap:16px;flex-wrap:wrap;justify-content:center;padding:8px 16px;border-radius:999px;background:rgba(10,14,22,.7);border:1px solid rgba(255,255,255,.08);backdrop-filter:blur(8px)}
 .legend span{display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase}
 .legend i{width:8px;height:8px;border-radius:50%}
+.how{margin-top:2px;pointer-events:auto;min-height:32px;padding:0 14px;font-size:13px}
+dialog.howd{border:1px solid var(--line);border-bottom-color:rgba(124,157,255,.35);border-radius:14px;background:#0a0d14;color:var(--ink);padding:26px 28px;width:min(560px,calc(100vw - 32px));max-height:calc(100vh - 48px);box-shadow:0 30px 80px rgba(0,0,0,.6),0 50px 120px -30px rgba(124,157,255,.45)}
+dialog.howd::backdrop{background:rgba(6,8,12,.78)}
+.howd h2{margin:6px 0 4px;font-size:24px;font-weight:500;letter-spacing:-.02em}
+.howd .lead{margin:0 0 16px;color:var(--soft);font-size:14.5px;line-height:1.55}
+.howd ol{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:12px;counter-reset:s}
+.howd li{display:flex;gap:14px;align-items:flex-start;font-size:14.5px;line-height:1.5;color:#dfe5ee}
+.howd li::before{counter-increment:s;content:counter(s,decimal-leading-zero);flex:none;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;color:var(--acc);padding-top:3px}
+.howd li b{color:var(--ink);font-weight:500}
+.howd .tags{display:inline-flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.howd .tg{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;padding:3px 8px;border-radius:999px;border:1px solid}
+.howd .end{margin-top:18px;display:flex;justify-content:flex-end}
 .list{display:none}
 @media (max-width:899px){
   body{overflow:auto}.lbl,.legend{display:none}#sc{pointer-events:none}
@@ -149,13 +161,31 @@ async function hoje() {
   $('app').innerHTML = `
   <header class="hd"><div class="hd-in">
     <div><span class="mono">Vestibulinho · ${fmt(today)}${faltam > 0 ? ' · faltam ' + faltam + ' dias' : ''}</span>
-      <h1>${n ? (n === 1 ? '1 coisa para fazer' : n + ' coisas para fazer') : 'Tudo feito por hoje'}</h1></div>
+      <h1>${n ? (n === 1 ? '1 coisa para fazer' : n + ' coisas para fazer') : 'Tudo feito por hoje'}</h1>
+      <button class="pill-btn ghost how" id="how" type="button">Como funciona</button></div>
     <div class="acts">${next ? `<a class="pill-btn cta" href="${link(next)}">${ctaText}</a>` : ''}<span id="hub-dock" style="display:inline-flex;align-items:center"></span><button class="pill-btn ghost" id="out" type="button">Sair</button></div>
   </div></header>
   <nav class="list" id="list" aria-label="Treinos e provas">${ITEMS.map(s => `<a class="li" href="${link(s)}"><span style="width:8px;height:8px;border-radius:50%;background:${ST[s.st].c}"></span><span class="t">${esc(s.title)}</span><span class="d">${fmt(s.due)} · ${ST[s.st].w}</span></a>`).join('')}</nav>
   <div class="legend" aria-hidden="true">${['today', 'pend', 'open'].filter(k => ITEMS.some(x => x.st === k)).map(k => `<span><i style="background:${ST[k].c}"></i>${ST[k].w}</span>`).join('')}</div>
-  <section class="panel" id="panel" role="dialog" aria-labelledby="ptitle"></section>`;
+  <section class="panel" id="panel" role="dialog" aria-labelledby="ptitle"></section>
+  <dialog class="howd" id="howd" aria-labelledby="howt">
+    <span class="mono">Como funciona</span><h2 id="howt">De 21 para 30 acertos até 06/12</h2>
+    <p class="lead">Na sua primeira prova você fez 21. Para passar, a meta é 30 ou mais. Não precisa saber tudo: precisa parar de perder as questões que dava para acertar.</p>
+    <ol>
+      <li><span><b>Um treino curto por dia.</b> 15 questões de provas antigas da Etec, as mesmas que caem de verdade. Comece pelo botão de cima.</span></li>
+      <li><span><b>Errou? Leia os três quadros.</b> É ali que você aprende o atalho para a próxima.<br><span class="tags"><span class="tg" style="color:#5ee08f;border-color:rgba(94,224,143,.4)">CONCEITO · o que precisava saber</span><span class="tg" style="color:#7c9dff;border-color:rgba(124,157,255,.45)">REGRA · o atalho que resolve</span><span class="tg" style="color:#ff6b6b;border-color:rgba(255,107,107,.4)">ARMADILHA · por que a errada parecia certa</span></span></span></li>
+      <li><span><b>Vai chutar? Marque "Chutei" antes.</b> Assim dá para separar o que você sabe do que foi sorte. Chutar não é errado: na prova de verdade, nunca deixe em branco.</span></li>
+      <li><span><b>Ficou em dúvida? Escreva na nota.</b> É opcional, mas ajuda a ajustar os próximos treinos para o que você mais confunde.</span></li>
+      <li><span><b>Domingo tem prova completa.</b> Só abre no dia, sem cronômetro, e dá para fazer em partes. Só envia com todas marcadas.</span></li>
+      <li><span><b>Atrasou? Sem problema.</b> O que ficou para trás aparece em "pendentes". Faz um de cada vez.</span></li>
+    </ol>
+    <p class="lead" style="margin:16px 0 0">Por que funciona: metade da prova se resolve lendo com atenção e eliminando as alternativas que exageram ou dizem algo que o texto não diz. Treinando isso todo dia, vira reflexo.</p>
+    <div class="end"><button class="pill-btn" id="howx" type="button">Entendi</button></div>
+  </dialog>`;
   $('out').addEventListener('click', () => DB.logout());
+  $('how').addEventListener('click', () => $('howd').showModal());
+  $('howx').addEventListener('click', () => $('howd').close());
+  $('howd').addEventListener('click', e => { if (e.target === $('howd')) $('howd').close(); });
   setupScene(today);
   document.dispatchEvent(new Event('app-ready'));
 }
