@@ -9,27 +9,29 @@
   // Data local AAAA-MM-DD (fuso do aparelho).
   const iso = d => { const z = n => String(n).padStart(2, '0'); return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate()); };
 
-  // Fila de gravação: guarda a última versão de cada linha e tenta de novo se a internet cair.
-  const queue = new Map(); let flushing = false, retry = null;
+  // Fila de gravação: uma linha por vez (uma recusa não derruba as outras), sempre a versão mais nova
+  // de cada questão, e nova tentativa se a internet cair. flush() devolve a promessa da fila inteira.
+  const queue = new Map(), waits = new Map(); let chain = Promise.resolve(), running = false, retry = null, fails = 0;
   function status(text, tone) {
     let el = document.getElementById('db-status');
     if (!el) { el = document.createElement('div'); el.id = 'db-status'; document.body.appendChild(el); }
     el.textContent = text || ''; el.dataset.tone = tone || ''; el.hidden = !text;
   }
-  async function flush() {
-    if (flushing || !queue.size) return; flushing = true;
-    const rows = Array.from(queue.values()); queue.clear();
-    const { error } = await sb.from('answers').upsert(rows, { onConflict: 'user_id,set_id,q_id' });
-    flushing = false;
-    if (error) {
-      // linha travada pelo banco (treino respondido ou prova enviada) não volta para a fila
-      if (/travada|row-level security/i.test(error.message)) { status('Essa resposta já estava travada.', 'warn'); return; }
-      rows.forEach(r => { const k = r.set_id + '|' + r.q_id; if (!queue.has(k)) queue.set(k, r); });
-      status('Sem conexão: tentando salvar de novo…', 'warn');
-      clearTimeout(retry); retry = setTimeout(flush, 4000); return;
+  async function run() {
+    running = true;
+    while (queue.size) {
+      const [k, row] = queue.entries().next().value; queue.delete(k);
+      const { error } = await sb.from('answers').upsert([row], { onConflict: 'user_id,set_id,q_id' });
+      if (!error) { fails = 0; continue; }
+      if (/travada|row-level security|mover/i.test(error.message)) { status('Essa resposta já estava travada.', 'warn'); continue; }
+      if (!queue.has(k)) queue.set(k, row);
+      fails++; status('Sem conexão: tentando salvar de novo…', 'warn');
+      clearTimeout(retry); retry = setTimeout(flush, Math.min(30000, 4000 * fails));
+      running = false; return;
     }
-    status(''); if (queue.size) flush();
+    running = false; if (fails === 0) status('');
   }
+  function flush() { chain = chain.then(run, run); return chain; }
 
   window.DB = {
     sb, iso,
@@ -67,12 +69,17 @@
       return flush();
     },
     async submit(setId) {
-      await flush();
+      this.now(); await flush();
+      if (queue.size) throw new Error('ainda há respostas sem salvar; confira a internet');
       const { error } = await sb.from('submissions').upsert([{ set_id: setId }], { onConflict: 'user_id,set_id', ignoreDuplicates: true });
       if (error) throw error;
     },
-    pending: () => queue.size > 0 || flushing,
+    // Nota com espera (debounce) que conta como pendente e é gravada na hora se a página fechar.
+    later(key, fn, ms) { clearTimeout(waits.get(key) && waits.get(key).t); waits.set(key, { fn, t: setTimeout(() => { waits.delete(key); fn(); }, ms || 700) }); },
+    now() { waits.forEach(w => { clearTimeout(w.t); w.fn(); }); waits.clear(); },
+    pending: () => queue.size > 0 || running || waits.size > 0,
     status
   };
-  addEventListener('beforeunload', e => { if (window.DB.pending()) { e.preventDefault(); e.returnValue = ''; } });
+  addEventListener('pagehide', () => window.DB.now());
+  addEventListener('beforeunload', e => { window.DB.now(); if (window.DB.pending()) { e.preventDefault(); e.returnValue = ''; } });
 })();

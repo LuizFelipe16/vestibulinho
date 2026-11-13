@@ -12,7 +12,7 @@
   answers.forEach(a => { if (a.choice) state.answers[a.q_id] = a.choice; if (a.note) state.notes[a.q_id] = a.note; if (a.chute) state.chute[a.q_id] = true; });
   const last = JSON.parse(JSON.stringify(state));
   const total = (set.data.questions || []).length;
-  let noteTimer = null, sent = !!submitted;
+  const latest = {}; let sent = !!submitted;
 
   function sync(p) {
     const ids = new Set([].concat(Object.keys(p.answers || {}), Object.keys(p.notes || {}), Object.keys(p.chute || {})));
@@ -22,10 +22,10 @@
       const was = { choice: last.answers[q] || null, chute: !!last.chute[q], note: (last.notes[q] || '').trim() || null };
       if (row.choice === was.choice && row.chute === was.chute && row.note === was.note) return;
       last.answers[q] = row.choice; last.chute[q] = row.chute; last.notes[q] = row.note || '';
+      latest[q] = row;
       if (row.choice === was.choice && row.chute === was.chute) {          // só a nota mudou: espera parar de digitar
-        noteOnly = true; clearTimeout(noteTimer);
-        noteTimer = setTimeout(() => DB.save(session.user.id, id, q, row), 700);
-      } else DB.save(session.user.id, id, q, row);
+        noteOnly = true; DB.later(id + '|' + q, () => DB.save(session.user.id, id, q, latest[q]));
+      } else { DB.later(id + '|' + q, () => {}, 0); DB.save(session.user.id, id, q, row); }   // já leva a nota mais nova junto
     });
     const done = Object.values(p.answers || {}).filter(Boolean).length;
     if (!sent && total && done >= total) { sent = true; DB.submit(id).catch(() => { sent = false; }); }

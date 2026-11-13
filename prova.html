@@ -84,7 +84,6 @@ function count() {
   $('send').hidden = !!submitted; $('eb').textContent = submitted ? 'Prova enviada' : 'Prova completa · sem cronômetro';
 }
 const save = q => DB.save(session.user.id, id, q, { choice: st[q].choice, chute: st[q].chute, note: st[q].note.trim() || null });
-const timers = {};
 $('folha').addEventListener('click', e => {
   const box = e.target.closest('.q'); if (!box) return; const q = box.dataset.q, s = st[q];
   if (e.target.closest('.nb')) { box.classList.add('open'); box.querySelector('.ni').focus(); return; }
@@ -98,7 +97,7 @@ $('folha').addEventListener('input', e => {
   if (submitted || !e.target.classList.contains('ni')) return;
   const q = e.target.closest('.q').dataset.q; st[q].note = e.target.value;
   e.target.closest('.q').querySelector('.nb').classList.toggle('has', !!e.target.value.trim());
-  clearTimeout(timers[q]); timers[q] = setTimeout(() => save(q), 700);
+  DB.later(id + '|' + q, () => save(q));
 });
 $('send').addEventListener('click', () => {
   const blank = Object.values(st).filter(s => !s.choice).length;
@@ -107,7 +106,7 @@ $('send').addEventListener('click', () => {
 });
 $('no').addEventListener('click', () => $('dlg').close());
 $('yes').addEventListener('click', async () => {
-  Object.keys(timers).forEach(q => { clearTimeout(timers[q]); save(q); });
+  DB.now();
   try { await DB.submit(id); submitted = new Date().toISOString(); $('dlg').close(); render(); }
   catch (e) { $('dlgp').textContent = 'Não consegui enviar: ' + e.message + '. Tenta de novo.'; }
 });
