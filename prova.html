@@ -44,11 +44,12 @@ dialog .acts{display:flex;gap:10px;justify-content:flex-end}
 <body>
 <header class="top"><div class="t"><span class="mono" id="eb">Prova completa</span><h1 id="title">Carregando…</h1></div>
   <div class="bar" role="progressbar" aria-label="Questões marcadas"><i id="bar" style="width:0"></i></div><span class="mono" id="cnt"></span>
-  <a class="pill-btn ghost" id="open" target="_blank" rel="noopener">Abrir PDF em outra aba</a><a class="pill-btn ghost" href="./">← Hoje</a><button class="pill-btn" id="send" type="button" hidden>Enviar prova</button></header>
+  <a class="pill-btn ghost" id="open" target="_blank" rel="noopener">Abrir PDF em outra aba</a><a class="pill-btn ghost" href="./">← Hoje</a><button class="pill-btn" id="send" type="button" hidden>Enviar prova</button><span id="hub-dock" style="display:inline-flex;align-items:center"></span></header>
 <div class="wrap"><iframe class="pdf" id="pdf" title="Caderno da prova"></iframe><aside class="folha" id="folha" aria-label="Folha de respostas"></aside></div>
 <dialog id="dlg"><h2>Enviar a prova?</h2><p id="dlgp"></p><div class="acts"><button class="pill-btn ghost" id="no" type="button">Voltar</button><button class="pill-btn" id="yes" type="button">Enviar</button></div></dialog>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js"></script>
 <script src="js/db.js"></script>
+<script>if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) { window.HUB_DOC = Object.assign({ id: "vestibulinho-prova", title: document.title }, window.HUB_DOC || {}, { type: "prova" }); addEventListener("DOMContentLoaded", () => { const s = document.createElement("script"); s.src = "/_local/ajustes.js"; document.body.appendChild(s); }); }</script>
 <script>
 (async function () {
 'use strict';

@@ -45,6 +45,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.min.js"></script>
 <script src="js/fx.js"></script>
 <script src="js/db.js"></script>
+<script>if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) { window.HUB_DOC = Object.assign({ id: "vestibulinho-index", title: document.title }, window.HUB_DOC || {}, { type: "index" }); document.addEventListener("app-ready", () => { if (document.querySelector("script[src='/_local/ajustes.js']")) return; const s = document.createElement("script"); s.src = "/_local/ajustes.js"; document.body.appendChild(s); }); }</script>
 <script>
 (function () {
 'use strict';
@@ -103,7 +104,7 @@ async function hoje() {
   const heroLabel = !hero ? '' : hero.due === today ? 'TREINO DE HOJE' : hero.due < today ? 'COMECE POR AQUI' : 'ADIANTE UM TREINO';
   $('app').innerHTML = `<div class="page">
   <header class="hd"><div><span class="mono">Vestibulinho · ${fmt(today)}</span><h1>${faltam > 0 ? faltam + ' dias para a prova' : faltam === 0 ? 'Hoje é a prova. Boa!' : 'Prova feita'}</h1></div>
-    <button class="pill-btn ghost" id="out" type="button">Sair</button></header>
+    <div style="display:flex;gap:10px;align-items:center"><span id="hub-dock" style="display:inline-flex;align-items:center"></span><button class="pill-btn ghost" id="out" type="button">Sair</button></div></header>
   <div class="stats">
     <div class="card stat"><span class="mono">Sequência</span><b style="color:var(--ok)">${seq} ${seq === 1 ? 'dia' : 'dias'}</b></div>
     <div class="card stat"><span class="mono">Treinos feitos</span><b>${feitos.length}</b></div>
@@ -120,6 +121,7 @@ async function hoje() {
   ${feitos.length ? `<section class="sec"><span class="mono">Feitos</span><div class="card list">${feitos.slice().reverse().map(s => row(s, 'var(--ok)')).join('')}</div></section>` : ''}
   </div>`;
   $('out').addEventListener('click', () => DB.logout());
+  document.dispatchEvent(new Event('app-ready'));
 }
 
 async function start() {
