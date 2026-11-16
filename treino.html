@@ -122,6 +122,10 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-of
 .fbk .why .tag{color:#5ee08f}.fbk .tip .tag{color:#fbc54a}
 .fbk .rule{background:rgba(124,157,255,.07);border:1px solid rgba(124,157,255,.3)}.fbk .rule .tag{color:#7c9dff}
 .fbk .trap{background:rgba(255,107,107,.06);border:1px solid rgba(255,107,107,.28)}.fbk .trap .tag{color:#ff6b6b}
+.fbk .words{background:rgba(196,120,255,.06);border:1px solid rgba(196,120,255,.3)}.fbk .words .tag{color:#c478ff}
+.fbk .words ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}.fbk .words b{color:#fff;font-weight:600}
+.fbk .words .need{display:inline-block;margin-left:6px;font:600 10px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.06em;padding:3px 6px;border-radius:5px;vertical-align:1px}
+.fbk .words .need.y{color:#fbc54a;border:1px solid rgba(251,197,74,.45)}.fbk .words .need.n{color:#8fa0b8;border:1px solid rgba(143,160,184,.4)}
 .chrow{display:flex;align-items:center;gap:12px;padding:10px 22px 0}
 .chb{min-height:34px;padding:0 14px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:transparent;font-size:13px;color:var(--soft);transition:border-color 160ms,color 160ms,background 160ms}
 .chb:hover:not(:disabled){border-color:rgba(251,197,74,.6);color:#fbc54a}
@@ -181,7 +185,7 @@ const QS = (DATA.questions || []).map((q, i) => {
   const options = (q.options || []).slice(0, 5).map((o, k) => typeof o === 'string' ? { id: 'ABCDE'[k], label: o, desc: '' } : { id: 'ABCDE'[k], label: o.label, desc: o.desc || '' });
   return { id: String(q.id || 'Q' + (i + 1)), title: q.title || q.short || '', short: q.short || q.title || '', group: q.group, impact: q.impact == null ? 3 : +q.impact,
     deps: (q.deps || []).map(String), options, allowFree: false, rec: '', source: q.source || '',
-    answer: String(q.answer || '').toUpperCase(), why: q.why || '', tip: q.tip || '', conceito: q.conceito || '', regra: q.regra || '', armadilha: q.armadilha || '', texts: (Array.isArray(q.text) ? q.text : q.text ? [q.text] : []), code: q.code || '',
+    answer: String(q.answer || '').toUpperCase(), why: q.why || '', tip: q.tip || '', conceito: q.conceito || '', regra: q.regra || '', armadilha: q.armadilha || '', palavras: Array.isArray(q.palavras) ? q.palavras : [], texts: (Array.isArray(q.text) ? q.text : q.text ? [q.text] : []), code: q.code || '',
     body: [] };
 });
 const byId = {}; QS.forEach(q => { byId[q.id] = q; });
@@ -423,6 +427,7 @@ function updateCard() {
       ? `<div class="box why"><span class="tag">${ok ? 'ACERTOU · CONFIRA SE FOI POR ESTE MOTIVO' : 'CONCEITO · A CERTA É ' + esc(q.answer)}</span>${esc(q.conceito)}</div>`
         + (q.regra ? `<div class="box rule"><span class="tag">${rule ? 'REGRA · ' + esc(rule[1].toUpperCase()) : 'REGRA'}</span>${esc(rule ? rule[2] : q.regra)}</div>` : '')
         + (q.armadilha ? `<div class="box trap"><span class="tag">${ok ? 'ARMADILHA · A QUE VOCÊ ESCAPOU' : 'ARMADILHA'}</span>${esc(q.armadilha)}</div>` : '')
+        + (q.palavras.length ? `<div class="box words"><span class="tag">PALAVRAS</span><ul>${q.palavras.map(w => `<li><b>${esc(w.t)}</b><span class="need ${w.precisa ? 'y">PRECISAVA SABER' : 'n">DAVA PARA ACERTAR SEM'}</span><br>${esc(w.d)}</li>`).join('')}</ul></div>` : '')
       : (q.why ? `<div class="box why"><span class="tag">POR QUE É ${esc(q.answer)}</span>${esc(q.why)}</div>` : '') + (q.tip ? `<div class="box tip"><span class="tag">PISTA PARA A PRÓXIMA</span>${esc(q.tip)}</div>` : '');
     fb.hidden = !fb.innerHTML; }
   else if (!a) { fb.hidden = true; fb.innerHTML = ''; }
