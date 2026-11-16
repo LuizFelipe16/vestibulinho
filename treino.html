@@ -417,10 +417,12 @@ function updateCard() {
   if (a && fb.hidden) {
     // explicação em três partes quando existe (Conceito · Regra · Armadilha); senão, a antiga (por quê + pista)
     const rule = q.regra.match(/^([A-ZÀ-Ú ]{4,}|Sem atalho)[:]\s*(.*)$/);
+    // no acerto também: ele confere se acertou pelo motivo certo
+    const ok = a === q.answer;
     fb.innerHTML = q.conceito
-      ? `<div class="box why"><span class="tag">CONCEITO · A CERTA É ${esc(q.answer)}</span>${esc(q.conceito)}</div>`
+      ? `<div class="box why"><span class="tag">${ok ? 'ACERTOU · CONFIRA SE FOI POR ESTE MOTIVO' : 'CONCEITO · A CERTA É ' + esc(q.answer)}</span>${esc(q.conceito)}</div>`
         + (q.regra ? `<div class="box rule"><span class="tag">${rule ? 'REGRA · ' + esc(rule[1].toUpperCase()) : 'REGRA'}</span>${esc(rule ? rule[2] : q.regra)}</div>` : '')
-        + (q.armadilha ? `<div class="box trap"><span class="tag">ARMADILHA</span>${esc(q.armadilha)}</div>` : '')
+        + (q.armadilha ? `<div class="box trap"><span class="tag">${ok ? 'ARMADILHA · A QUE VOCÊ ESCAPOU' : 'ARMADILHA'}</span>${esc(q.armadilha)}</div>` : '')
       : (q.why ? `<div class="box why"><span class="tag">POR QUE É ${esc(q.answer)}</span>${esc(q.why)}</div>` : '') + (q.tip ? `<div class="box tip"><span class="tag">PISTA PARA A PRÓXIMA</span>${esc(q.tip)}</div>` : '');
     fb.hidden = !fb.innerHTML; }
   else if (!a) { fb.hidden = true; fb.innerHTML = ''; }
