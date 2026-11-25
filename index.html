@@ -62,6 +62,9 @@ dialog.howd::backdrop{background:rgba(6,8,12,.78)}
 .howd .tags{display:inline-flex;gap:6px;flex-wrap:wrap;margin-top:6px}
 .howd .tg{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;padding:3px 8px;border-radius:999px;border:1px solid}
 .howd .end{margin-top:18px;display:flex;justify-content:flex-end}
+.rcd p{margin:0 0 10px;font-size:15px;line-height:1.6;color:#dfe5ee}
+.rcd ul{counter-reset:s;margin:0 0 10px;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}.rcd li{font-size:15px;line-height:1.55;color:#dfe5ee}
+.how.rcb{border-color:rgba(251,197,74,.55);color:#fbc54a;margin-left:6px}
 .list{display:none}
 @media (max-width:899px){
   body{overflow:auto}.lbl,.legend{display:none}#sc{pointer-events:none}
@@ -157,17 +160,24 @@ async function hoje() {
   const next = ITEMS.find(s => s.st === 'open') || hojeT[0] || pend[0];
   const faltam = days(today, PROVA_REAL);
   const n = ITEMS.length;
+  const rcSet = ITEMS.find(s => s.recado && s.st === 'today') || ITEMS.find(s => s.recado);
+  const RC = rcSet ? (typeof rcSet.recado === 'string' ? { texto: rcSet.recado } : rcSet.recado) : null;
   const ctaText = !next ? '' : next.kind === 'prova' ? 'Fazer a prova de hoje →' : next.st === 'today' ? (next.n ? 'Continuar o treino de hoje →' : 'Começar o treino de hoje →') : 'Fazer um pendente →';
   $('app').innerHTML = `
   <header class="hd"><div class="hd-in">
     <div><span class="mono">Vestibulinho · ${fmt(today)}${faltam > 0 ? ' · faltam ' + faltam + ' dias' : ''}</span>
       <h1>${n ? (n === 1 ? '1 coisa para fazer' : n + ' coisas para fazer') : 'Tudo feito por hoje'}</h1>
-      <button class="pill-btn ghost how" id="how" type="button">Como funciona</button></div>
+      <button class="pill-btn ghost how" id="how" type="button">Como funciona</button>${RC ? '<button class="pill-btn ghost how rcb" id="rcb" type="button">Recado</button>' : ''}</div>
     <div class="acts">${next ? `<a class="pill-btn cta" href="${link(next)}">${ctaText}</a>` : ''}<span id="hub-dock" style="display:inline-flex;align-items:center"></span><button class="pill-btn ghost" id="out" type="button">Sair</button></div>
   </div></header>
   <nav class="list" id="list" aria-label="Treinos e provas">${ITEMS.map(s => `<a class="li" href="${link(s)}"><span style="width:8px;height:8px;border-radius:50%;background:${ST[s.st].c}"></span><span class="t">${esc(s.title)}</span><span class="d">${fmt(s.due)} · ${ST[s.st].w}</span></a>`).join('')}</nav>
   <div class="legend" aria-hidden="true">${['today', 'pend', 'open'].filter(k => ITEMS.some(x => x.st === k)).map(k => `<span><i style="background:${ST[k].c}"></i>${ST[k].w}</span>`).join('')}</div>
   <section class="panel" id="panel" role="dialog" aria-labelledby="ptitle"></section>
+  ${RC ? `<dialog class="howd" id="rcd" aria-labelledby="rct">
+    <span class="mono" style="color:#fbc54a">Recado${RC.de ? ' de ' + esc(RC.de) : ''}</span><h2 id="rct">${esc(RC.titulo || 'Antes de começar')}</h2>
+    <div class="rcd">${recadoHTML(RC.texto)}</div>
+    <div class="end">${next ? `<a class="pill-btn" href="${link(next)}">${ctaText}</a>` : `<button class="pill-btn" id="rcx" type="button">Entendi</button>`}</div>
+  </dialog>` : ''}
   <dialog class="howd" id="howd" aria-labelledby="howt">
     <span class="mono">Como funciona</span><h2 id="howt">De 21 para 30 acertos até 06/12</h2>
     <p class="lead">Na sua primeira prova você fez 21. Para passar, a meta é 30 ou mais. Não precisa saber tudo: precisa parar de perder as questões que dava para acertar.</p>
@@ -186,8 +196,24 @@ async function hoje() {
   $('how').addEventListener('click', () => $('howd').showModal());
   $('howx').addEventListener('click', () => $('howd').close());
   $('howd').addEventListener('click', e => { if (e.target === $('howd')) $('howd').close(); });
+  if (RC) {
+    const d = $('rcd'); $('rcb').addEventListener('click', () => d.showModal());
+    d.addEventListener('click', e => { if (e.target === d || e.target.id === 'rcx') d.close(); });
+    // abre sozinho uma vez por recado (no aparelho); depois fica no botão Recado
+    const key = 'vestibulinho:recado:' + rcSet.id + ':' + String(RC.texto).length;
+    let seen = false; try { seen = !!localStorage.getItem(key); localStorage.setItem(key, '1'); } catch (e) {}
+    if (!seen) d.showModal();
+  }
   setupScene(today);
   document.dispatchEvent(new Event('app-ready'));
+}
+
+// recado do tutor: texto livre; linhas que começam com "- " viram lista
+function recadoHTML(t) {
+  const out = []; let ul = [];
+  const flush = () => { if (ul.length) { out.push('<ul>' + ul.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>'); ul = []; } };
+  String(t || '').split('\n').forEach(l => { const m = l.match(/^\s*[-•]\s+(.*)$/); if (m) ul.push(m[1]); else { flush(); if (l.trim()) out.push('<p>' + esc(l) + '</p>'); } });
+  flush(); return out.join('');
 }
 
 function panelHTML(s) {

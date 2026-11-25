@@ -157,6 +157,14 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-of
 .row.strk{opacity:.38}.row.strk .lab,.row.strk .desc{text-decoration:line-through;text-decoration-thickness:1.5px}
 .rep{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.14em;padding:3px 7px;border-radius:5px;border:1px solid rgba(251,197,74,.45);color:#fbc54a;white-space:nowrap}
 .ptop .ml{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0}
+/* confirmar a resposta: o toque só seleciona; marcar exige o botão */
+.cfm{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:4px 22px 0}
+.cfm[hidden]{display:none}
+.cfm .mono{letter-spacing:.08em}
+.row.sel .let{border-color:rgba(124,157,255,.75);color:var(--acc)}
+.rc-t{white-space:pre-line}
+.mdl .rc ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.mdl .rc li{font-size:15px;line-height:1.55;color:#dfe5ee}
 /* cartões (regra do dia, o que aprendeu) */
 .mdl{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(6,8,12,.8);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
 .mdl[hidden]{display:none}
@@ -205,7 +213,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-of
       <span class="mono"><span id="done">0</span>/<span id="total">0</span> RESPONDIDAS</span><span class="score" id="score"></span>
     </div>
   </div>
-  <div style="display:flex;gap:10px;align-items:center;pointer-events:auto;flex-wrap:wrap"><button id="rd-chip" class="pill-btn sm rd" type="button" hidden></button><button id="ap-btn" class="pill-btn sm" type="button" hidden>O que aprendi</button><button id="cp-copy" class="pill-btn" type="button">Copiar resultado</button><span id="hub-dock" style="display:inline-flex;align-items:center;pointer-events:auto"></span></div>
+  <div style="display:flex;gap:10px;align-items:center;pointer-events:auto;flex-wrap:wrap"><button id="rc-chip" class="pill-btn sm" type="button" hidden>Recado</button><button id="rd-chip" class="pill-btn sm rd" type="button" hidden></button><button id="ap-btn" class="pill-btn sm" type="button" hidden>O que aprendi</button><button id="cp-copy" class="pill-btn" type="button">Copiar resultado</button><span id="hub-dock" style="display:inline-flex;align-items:center;pointer-events:auto"></span></div>
 </div></header>
 <nav class="list" id="list" aria-label="Questões"></nav>
 <button type="button" class="back" id="back" tabindex="-1" aria-label="Fechar questão e voltar ao mapa"></button>
@@ -221,6 +229,12 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-of
   <div class="ex" id="rd-ex"><span class="tag">EXEMPLO</span><span id="rd-exemplo"></span></div>
   <span class="mono" style="letter-spacing:.08em">este passo fica destacado em cada questão</span>
   <div class="mb"><button type="button" class="fb pri" id="rd-ok">Entendi</button></div>
+</div></div>
+<div class="mdl" id="rc" hidden><div class="mdl-c" role="dialog" aria-modal="true" aria-labelledby="rc-h">
+  <span class="mono" id="rc-de">RECADO</span>
+  <h3 id="rc-h">Antes de começar</h3>
+  <div class="rc" id="rc-body"></div>
+  <div class="mb"><button type="button" class="fb pri" id="rc-ok">Bora</button></div>
 </div></div>
 <div class="mdl" id="ap" hidden><div class="mdl-c" role="dialog" aria-modal="true" aria-labelledby="ap-t">
   <span class="mono">FIM DO TREINO</span>
@@ -436,7 +450,7 @@ if (!S.chute || typeof S.chute !== 'object') S.chute = {};
 let open = null, hoverM = null, hoverL = null, hoverK = null, copied = false;
 // Travei e riscar: riscadas valem só nesta aba; a lista de questões em que ele usou o Travei vai em S.notes._travei
 // (uma linha extra em answers, q_id "_travei", choice null). O que aprendeu vai em S.notes._aprendi.
-const STRK = {}; let strikeMode = false, guide = 0;
+const STRK = {}, SEL = {}; let strikeMode = false, guide = 0;
 const traveiIds = () => (S.notes._travei || '').split(',').map(x => x.trim()).filter(Boolean);
 function markTravei(id) { const l = traveiIds(); if (!l.includes(id)) { l.push(id); S.notes._travei = l.join(','); } }
 
@@ -491,6 +505,7 @@ ${deps}
 <div class="steps" id="cp-steps" aria-label="Os 3 passos">${STEPS[isMat(q) ? 'mat' : 'txt'].map(s => `<div class="stp${RD && RD.passo === s[0] ? ' hl' : ''}"><b>${s[0]} ${s[1]}</b><span>${esc(s[2])}</span></div>`).join('')}</div>
 <div class="guide" id="cp-guide" hidden aria-live="polite"></div>
 <div role="radiogroup" aria-label="Alternativas" class="opts" id="cp-opts">${rows}</div>
+<div class="cfm" id="cp-cfm" hidden><span class="mono">toque em outra para trocar</span><button type="button" class="fb pri" id="cp-ok"></button></div>
 <div class="fbk" id="cp-fbk" hidden></div>
 <div class="note"><label for="cp-n">obs:</label><input id="cp-n" type="text" data-row="${nOpt + (q.allowFree ? 1 : 0)}" placeholder="anote a dúvida ou o porquê do erro" value="${esc(S.notes[q.id] || '')}" autocomplete="off"></div>
 <div class="foot"><button type="button" class="fb" id="cp-prev" aria-label="Pergunta anterior (←)">← Anterior</button><button type="button" class="fb pri" id="cp-next"></button></div>`;
@@ -499,7 +514,8 @@ function updateCard() {
   if (!open) return;
   const q = byId[open], st = ST[statusOf(q.id)], a = S.answers[q.id];
   const w = $('cp-w'); if (w.textContent !== st.w) { w.textContent = st.w; w.style.color = st.c; }
-  pc.querySelectorAll('[data-opt]').forEach(b => { const on = b.dataset.opt === a, o = b.dataset.opt; b.setAttribute('aria-checked', String(on));
+  const sel = a ? null : SEL[q.id] || null;
+  pc.querySelectorAll('[data-opt]').forEach(b => { const on = b.dataset.opt === a, o = b.dataset.opt; b.setAttribute('aria-checked', String(on || o === sel)); b.classList.toggle('sel', o === sel);
     b.classList.toggle('ok', !!a && o === q.answer); b.classList.toggle('bad', !!a && on && o !== q.answer); const ck = b.querySelector('.ck'); if (ck) ck.textContent = !!a && on && o !== q.answer ? '✗' : '✓'; });
   $('cp-opts').classList.toggle('locked', !!a);
   const chb = $('cp-chute'), ch = !!S.chute[q.id]; chb.setAttribute('aria-pressed', String(ch)); chb.disabled = !!a;
@@ -509,6 +525,7 @@ function updateCard() {
   const sk = STRK[q.id] || new Set();
   pc.querySelectorAll('[data-opt]').forEach(b => b.classList.toggle('strk', !a && sk.has(b.dataset.opt)));
   $('cp-opts').classList.toggle('striking', !a && strikeMode);
+  const cf = $('cp-cfm'); cf.hidden = !sel; if (sel) { const t = 'Confirmar ' + sel + ' ✓'; if ($('cp-ok').textContent !== t) $('cp-ok').textContent = t; }
   const rb = $('cp-risc'); rb.hidden = !!a; rb.setAttribute('aria-pressed', String(strikeMode));
   $('cp-trav').hidden = !!a || !!guide;
   $('cp-steps').hidden = !!a || !!guide;
@@ -546,6 +563,7 @@ pc.addEventListener('click', e => {
   const id = (e.target.closest('button') || {}).id;
   if (id === 'cp-chute') { if (!S.answers[q.id]) { S.chute[q.id] = !S.chute[q.id]; commit(); } return; }
   if (id === 'cp-risc') { if (!S.answers[q.id]) { strikeMode = !strikeMode; updateCard(); } return; }
+  if (id === 'cp-ok') { confirmPick(q); return; }
   if (id === 'cp-trav') { if (!S.answers[q.id]) { guide = 1; strikeMode = false; markTravei(q.id); commit(); const h = $('cp-q'); if (h && h.scrollIntoView) h.scrollIntoView({ block: 'nearest', behavior: FX.still ? 'auto' : 'smooth' }); } return; }
   if (id === 'cp-gn') { guide = guide < 3 ? guide + 1 : 0; strikeMode = guide === 2; updateCard(); const f = $(guide ? 'cp-gn' : 'cp-trav'); if (f && !f.hidden) f.focus({ preventScroll: true }); return; }
   if (id === 'cp-gx') { guide = 0; strikeMode = false; updateCard(); return; }
@@ -605,7 +623,13 @@ function paint() {
 function pick(q, oid, toggle) {
   if (S.answers[q.id]) return;
   if (strikeMode) { const sk = STRK[q.id] || (STRK[q.id] = new Set()); if (sk.has(oid)) sk.delete(oid); else sk.add(oid); updateCard(); return; }
-  guide = 0; S.answers[q.id] = oid; commit();
+  SEL[q.id] = oid; updateCard();
+}
+// marca de verdade (trava no treino): só pelo botão Confirmar ou Enter nele
+function confirmPick(q) {
+  const oid = SEL[q.id]; if (!oid || S.answers[q.id]) return;
+  delete SEL[q.id]; guide = 0; strikeMode = false; S.answers[q.id] = oid; commit();
+  const b = $('cp-next'); if (b) b.focus({ preventScroll: true });
 }
 $('cp-copy').addEventListener('click', () => { HUB.copy(out()); copied = true; painted.copy = 'Copiado ✓'; $('cp-copy').textContent = painted.copy; });
 
@@ -992,7 +1016,7 @@ addEventListener('keydown', e => {
   if (k === 'Enter') {
     if (t.id === 'cp-free' || t.id === 'cp-n') { e.preventDefault(); advance(); return; }
     const row = t.getAttribute ? t.getAttribute('data-row') : null;
-    if (row != null && q.options[+row]) { e.preventDefault(); if (S.answers[q.id]) advance(); else { pick(q, q.options[+row].id, false); const b = $('cp-next'); if (b) b.focus({ preventScroll: true }); } return; }
+    if (row != null && q.options[+row]) { e.preventDefault(); if (S.answers[q.id]) advance(); else { pick(q, q.options[+row].id, false); const b = $(strikeMode ? 'cp-risc' : 'cp-ok'); if (b && !b.closest('[hidden]')) b.focus({ preventScroll: true }); } return; }
     if (tag !== 'BUTTON') { e.preventDefault(); advance(); }
     return;
   }
@@ -1000,7 +1024,7 @@ addEventListener('keydown', e => {
   if (k === 'ArrowRight') { e.preventDefault(); step(1); return; }
   if (k === 'ArrowLeft') { e.preventDefault(); step(-1); return; }
   const low = (k || '').toLowerCase(), n = Math.max('12345'.indexOf(low), 'abcde'.indexOf(low));
-  if (n >= 0 && n < q.options.length) { e.preventDefault(); if (!S.answers[q.id]) { pick(q, q.options[n].id, false); const b = $('cp-next'); if (b) b.focus({ preventScroll: true }); } return; }
+  if (n >= 0 && n < q.options.length) { e.preventDefault(); if (!S.answers[q.id]) { pick(q, q.options[n].id, false); const b = $('cp-ok'); if (b && !strikeMode && !b.closest('[hidden]')) b.focus({ preventScroll: true }); } return; }
   if (low === 'x') { e.preventDefault(); if (!S.answers[q.id]) { S.chute[q.id] = !S.chute[q.id]; commit(); } return; }
   if (low === 'r') { e.preventDefault(); if (!S.answers[q.id]) { strikeMode = !strikeMode; updateCard(); } return; }
   if (low === 'n' || low === '/') { e.preventDefault(); const el = $('cp-n'); if (el) el.focus(); }
@@ -1008,7 +1032,7 @@ addEventListener('keydown', e => {
 
 /* ---------------- cartões: regra do dia, o que você aprendeu ---------------- */
 let apShown = false, mdlBack = null;
-const mdlOpen = () => ['rd', 'ap'].find(k => !$(k).hidden);
+const mdlOpen = () => ['rc', 'rd', 'ap'].find(k => !$(k).hidden);
 function showMdl(k, focusEl) { mdlBack = document.activeElement; $(k).hidden = false; setTimeout(() => focusEl.focus({ preventScroll: true }), 30); }
 function hideMdl(k) { $(k).hidden = true; const b = mdlBack; mdlBack = null; if (b && b.focus && b.offsetParent) b.focus({ preventScroll: true }); }
 if (RD) {
@@ -1017,6 +1041,21 @@ if (RD) {
   const chip = $('rd-chip'); chip.textContent = 'Regra do dia · ' + RD.passo + ' ' + (RD.nome || ''); chip.hidden = false;
   chip.addEventListener('click', () => showMdl('rd', $('rd-ok')));
 }
+// recado do tutor (DATA.recado: texto; linhas com "- " viram lista). Abre antes da regra do dia.
+const RC = DATA.recado ? (typeof DATA.recado === 'string' ? { texto: DATA.recado } : DATA.recado) : null;
+function recadoHTML(t) {
+  const out = []; let ul = [];
+  const flush = () => { if (ul.length) { out.push('<ul>' + ul.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>'); ul = []; } };
+  String(t || '').split('\n').forEach(l => { const m = l.match(/^\s*[-•]\s+(.*)$/); if (m) ul.push(m[1]); else { flush(); if (l.trim()) out.push('<p>' + esc(l) + '</p>'); } });
+  flush(); return out.join('');
+}
+if (RC && RC.texto) {
+  $('rc-body').innerHTML = recadoHTML(RC.texto); if (RC.titulo) $('rc-h').textContent = RC.titulo;
+  $('rc-de').textContent = 'RECADO' + (RC.de ? ' DE ' + String(RC.de).toUpperCase() : '');
+  $('rc-chip').hidden = false; $('rc-chip').addEventListener('click', () => showMdl('rc', $('rc-ok')));
+}
+$('rc').addEventListener('click', e => { if (e.target === $('rc') || e.target.id === 'rc-ok') { hideMdl('rc'); if (RD && rcThenRd) { rcThenRd = false; showMdl('rd', $('rd-ok')); } } });
+let rcThenRd = false;
 $('rd').addEventListener('click', e => { if (e.target === $('rd') || e.target.id === 'rd-ok') hideMdl('rd'); });
 function openAp() { const t = $('ap-n'); t.value = S.notes._aprendi || ''; showMdl('ap', t); }
 function saveAp() { const v = $('ap-n').value.trim(); if (v !== (S.notes._aprendi || '').trim()) { S.notes._aprendi = v; commit(); } hideMdl('ap'); }
@@ -1031,13 +1070,16 @@ addEventListener('keydown', e => {
   const k = mdlOpen(); if (!k) return;
   e.stopPropagation();
   if (e.key === 'Escape') { e.preventDefault(); hideMdl(k); }
-  else if (e.key === 'Enter' && k === 'rd' && (e.target || {}).tagName !== 'BUTTON') { e.preventDefault(); hideMdl('rd'); }
+  else if (e.key === 'Enter' && (k === 'rd' || k === 'rc') && (e.target || {}).tagName !== 'BUTTON') { e.preventDefault(); $(k + '-ok').click(); }
 }, true);
 
 /* ---------------- start ---------------- */
 paint();
 sync(FX.route.get(), true);
-if (RD && QS.some(q => statusOf(q.id) === 'pending')) showMdl('rd', $('rd-ok'));
+if (QS.some(q => statusOf(q.id) === 'pending')) {
+  if (RC && RC.texto) { rcThenRd = !!RD; showMdl('rc', $('rc-ok')); }
+  else if (RD) showMdl('rd', $('rd-ok'));
+}
 })();
 };
 </script>

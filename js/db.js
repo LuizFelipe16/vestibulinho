@@ -53,7 +53,7 @@
     },
     async overview() {
       const [sets, ans, subs] = await Promise.all([
-        sb.from('sets').select('id,kind,title,due,ordem,total').order('due').order('ordem'),
+        sb.from('sets').select('id,kind,title,due,ordem,total,recado:data->recado').order('due').order('ordem'),
         sb.from('answers').select('set_id,choice'),
         sb.from('submissions').select('set_id,submitted_at')]);
       for (const r of [sets, ans, subs]) if (r.error) throw r.error;
