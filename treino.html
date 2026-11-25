@@ -135,6 +135,49 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-of
 .note.ask label{color:#fbc54a}
 .score{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.18em;color:#5ee08f}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* 3 passos antes de responder, Travei, riscar */
+.chrow{flex-wrap:wrap}
+.chrow .end{margin-left:auto}
+.chb.risc[aria-pressed=true]{border-color:rgba(124,157,255,.7);background:rgba(124,157,255,.12);color:var(--acc)}
+.chb.trav{border-color:rgba(196,120,255,.45);color:#c9a6ff}
+.chb.trav:hover:not(:disabled){border-color:rgba(196,120,255,.8);color:#ddc6ff}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:10px 22px 0}
+.steps[hidden]{display:none}
+.stp{display:flex;flex-direction:column;gap:3px;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.02);font-size:12px;line-height:1.35;color:var(--soft)}
+.stp b{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;color:var(--acc);font-weight:500;white-space:nowrap}
+.stp.hl{border-color:rgba(251,197,74,.5);background:rgba(251,197,74,.06)}.stp.hl b{color:#fbc54a}
+.guide{margin:10px 22px 0;padding:12px 14px;border-radius:10px;background:rgba(196,120,255,.07);border:1px solid rgba(196,120,255,.35);display:flex;flex-direction:column;gap:8px}
+.guide[hidden]{display:none}
+.guide .tag{color:#c9a6ff}
+.guide p{margin:0;font-size:14px;line-height:1.55;color:#dfe5ee}
+.guide .gb{display:flex;gap:8px;justify-content:flex-end;align-items:center}
+.guide .gb .fb{min-height:34px}
+.panel h2.hlq{background:rgba(251,197,74,.1);box-shadow:0 0 0 1px rgba(251,197,74,.55);border-radius:8px;padding:4px 8px;margin:0 -8px}
+.opts.striking .row:not(.strk){box-shadow:inset 0 0 0 1px rgba(124,157,255,.22)}
+.row.strk{opacity:.38}.row.strk .lab,.row.strk .desc{text-decoration:line-through;text-decoration-thickness:1.5px}
+.rep{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.14em;padding:3px 7px;border-radius:5px;border:1px solid rgba(251,197,74,.45);color:#fbc54a;white-space:nowrap}
+.ptop .ml{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0}
+/* cartões (regra do dia, o que aprendeu) */
+.mdl{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(6,8,12,.8);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+.mdl[hidden]{display:none}
+.mdl-c{width:min(520px,100%);max-height:calc(100vh - 32px);overflow:auto;background:#0a0d14;border:1px solid rgba(255,255,255,.1);border-bottom-color:rgba(124,157,255,.35);border-radius:14px;padding:20px 22px;display:flex;flex-direction:column;gap:12px;box-shadow:0 30px 80px rgba(0,0,0,.45),0 50px 120px -30px rgba(124,157,255,.45)}
+.mdl h3{margin:0;font-size:22px;line-height:1.3;font-weight:500;letter-spacing:-.01em}
+.mdl h3 .num{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;margin-right:8px;border-radius:8px;border:1px solid rgba(251,197,74,.6);color:#fbc54a;font-family:'JetBrains Mono',monospace;font-size:15px;vertical-align:2px}
+.mdl p{margin:0;font-size:15px;line-height:1.55;color:#dfe5ee}
+.mdl .ex{padding:10px 12px;border-radius:10px;background:rgba(251,197,74,.06);border:1px solid rgba(251,197,74,.28);font-size:14px;line-height:1.55;color:#dfe5ee}
+.mdl .ex .tag{display:block;margin-bottom:4px;color:#fbc54a}
+.mdl .mb{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.mdl textarea{width:100%;min-height:110px;resize:vertical;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.03);color:var(--ink);font:inherit;font-size:15px;line-height:1.5}
+.mdl textarea:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+.aph{display:flex;gap:8px;flex-wrap:wrap}
+.pill-btn.sm{min-height:34px;padding:0 14px;font-size:12.5px}
+.pill-btn.rd{border-color:rgba(251,197,74,.5);background:rgba(251,197,74,.08);color:#fbc54a}
+.pill-btn[hidden]{display:none}
+@media (max-width:599px){
+  .steps{grid-template-columns:1fr;gap:4px;padding-top:8px}
+  .stp{flex-direction:row;align-items:baseline;gap:8px;padding:5px 9px}
+  #cp-chh{flex-basis:100%;order:5}
+}
 
 /* under 900px: no scene, a plain list and a sheet */
 @media (max-width:899px){
@@ -162,7 +205,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-of
       <span class="mono"><span id="done">0</span>/<span id="total">0</span> RESPONDIDAS</span><span class="score" id="score"></span>
     </div>
   </div>
-  <div style="display:flex;gap:10px;align-items:center;pointer-events:auto"><button id="cp-copy" class="pill-btn" type="button">Copiar resultado</button><span id="hub-dock" style="display:inline-flex;align-items:center;pointer-events:auto"></span></div>
+  <div style="display:flex;gap:10px;align-items:center;pointer-events:auto;flex-wrap:wrap"><button id="rd-chip" class="pill-btn sm rd" type="button" hidden></button><button id="ap-btn" class="pill-btn sm" type="button" hidden>O que aprendi</button><button id="cp-copy" class="pill-btn" type="button">Copiar resultado</button><span id="hub-dock" style="display:inline-flex;align-items:center;pointer-events:auto"></span></div>
 </div></header>
 <nav class="list" id="list" aria-label="Questões"></nav>
 <button type="button" class="back" id="back" tabindex="-1" aria-label="Fechar questão e voltar ao mapa"></button>
@@ -171,6 +214,21 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-of
   <div class="glow g2" aria-hidden="true"></div>
   <section id="cp-panel" class="panel" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="cp-q"><div class="pc" id="pc"></div></section>
 </div>
+<div class="mdl" id="rd" hidden><div class="mdl-c" role="dialog" aria-modal="true" aria-labelledby="rd-t">
+  <span class="mono">REGRA DO DIA</span>
+  <h3 id="rd-t"></h3>
+  <p id="rd-como"></p>
+  <div class="ex" id="rd-ex"><span class="tag">EXEMPLO</span><span id="rd-exemplo"></span></div>
+  <span class="mono" style="letter-spacing:.08em">este passo fica destacado em cada questão</span>
+  <div class="mb"><button type="button" class="fb pri" id="rd-ok">Entendi</button></div>
+</div></div>
+<div class="mdl" id="ap" hidden><div class="mdl-c" role="dialog" aria-modal="true" aria-labelledby="ap-t">
+  <span class="mono">FIM DO TREINO</span>
+  <h3 id="ap-t">Antes de sair: o que você aprendeu hoje?</h3>
+  <div class="aph"><button type="button" class="chip" data-ap="Uma regra que funcionou: ">Uma regra que funcionou</button><button type="button" class="chip" data-ap="Um erro que não vou repetir: ">Um erro que não vou repetir</button></div>
+  <textarea id="ap-n" aria-labelledby="ap-t" placeholder="Escreva com suas palavras"></textarea>
+  <div class="mb"><button type="button" class="fb" id="ap-skip">Pular</button><button type="button" class="fb pri" id="ap-ok">Salvar e sair</button></div>
+</div></div>
 <script>
 window.startTreino = function () {
 const DATA = window.SET_DATA;
@@ -185,10 +243,34 @@ const QS = (DATA.questions || []).map((q, i) => {
   const options = (q.options || []).slice(0, 5).map((o, k) => typeof o === 'string' ? { id: 'ABCDE'[k], label: o, desc: '' } : { id: 'ABCDE'[k], label: o.label, desc: o.desc || '' });
   return { id: String(q.id || 'Q' + (i + 1)), title: q.title || q.short || '', short: q.short || q.title || '', group: q.group, impact: q.impact == null ? 3 : +q.impact,
     deps: (q.deps || []).map(String), options, allowFree: false, rec: '', source: q.source || '',
-    answer: String(q.answer || '').toUpperCase(), why: q.why || '', tip: q.tip || '', conceito: q.conceito || '', regra: q.regra || '', armadilha: q.armadilha || '', palavras: Array.isArray(q.palavras) ? q.palavras : [], texts: (Array.isArray(q.text) ? q.text : q.text ? [q.text] : []), code: q.code || '',
+    answer: String(q.answer || '').toUpperCase(), why: q.why || '', tip: q.tip || '', conceito: q.conceito || '', regra: q.regra || '', armadilha: q.armadilha || '', palavras: Array.isArray(q.palavras) ? q.palavras : [], texts: (Array.isArray(q.text) ? q.text : q.text ? [q.text] : []), code: q.code || '', repetida: !!q.repetida,
     body: [] };
 });
 const byId = {}; QS.forEach(q => { byId[q.id] = q; });
+// Os 3 passos de prova: leitura/conteúdo e matemática. Regra do dia (DATA.regra_do_dia) destaca um deles.
+const isMat = q => /^mat/.test(String(q.group || ''));
+const STEPS = {
+  txt: [['1', 'PERGUNTA', 'O que ela pede?'], ['2', 'RISQUE', 'exagero (só, sempre, nunca), fora do texto, contrário do texto'], ['3', 'PROVE', 'só marque a que você aponta numa frase do texto']],
+  mat: [['1', 'PERGUNTA', 'o que é pra achar? (valor, diferença, total, %)'], ['2', 'ESTIME', 'arredonde e risque as absurdas'], ['3', 'TESTE', 'coloque as alternativas na conta, um passo por linha']]
+};
+const GUIDE = {
+  txt: ['Leia só o comando destacado. Ele pede a correta, a incorreta, a ideia principal, o sentido de uma palavra? Diga com suas palavras.',
+        'Toque nas alternativas para riscar: as que exageram (só, sempre, nunca, apenas), as que falam de algo fora do texto e as que dizem o contrário do texto. Tocar de novo desrisca.',
+        'Qual sobrou que você prova com uma frase do texto? Dúvida entre duas: fica a que tem a frase.'],
+  mat: ['Leia só o comando destacado. O que é pra achar: um valor, uma diferença, um total, uma porcentagem?',
+        'Arredonde os números e faça a conta de cabeça. Toque nas alternativas absurdas, longe da sua estimativa, para riscar. Tocar de novo desrisca.',
+        'Coloque as alternativas que sobraram na conta, um passo por linha. Marque a que fecha.']
+};
+const RD = DATA.regra_do_dia && DATA.regra_do_dia.passo ? DATA.regra_do_dia : null;
+// nome antigo da regra (explicação pós-resposta) → passo; '2E' é sempre ESTIME, '3T' é TESTE
+const PASSO_DE = { 'LEIA O COMANDO': '1', 'RELEIA O QUE PEDE': '1', 'EXAGERO': '2', 'FORA DO TEXTO': '2', 'CONTRÁRIO DO TEXTO': '2', 'ESTIME ANTES': '2E',
+  'PROVE COM O TEXTO': '3', 'TROQUE NA FRASE': '3', 'PISTA NO ENUNCIADO': '3', 'TESTE AS ALTERNATIVAS': '3T', 'UM PASSO POR LINHA': '3T' };
+function ruleTag(q, nome) {
+  if (/^sem atalho$/i.test(nome)) return 'CONTEÚDO · GUARDE';
+  const N = nome.toUpperCase(), p = PASSO_DE[N]; if (!p) return 'REGRA · ' + N;
+  const novo = p === '1' ? 'PERGUNTA' : p === '2E' ? 'ESTIME' : p === '2' ? (isMat(q) ? 'ESTIME' : 'RISQUE') : p === '3T' ? 'TESTE' : 'PROVE';
+  return 'PASSO ' + p[0] + ' · ' + (N.startsWith(novo) ? N : novo + ' (' + N + ')');
+}
 // Cloud tints (the original blue/violet nebula) and status colours.
 const PALETTE = [
   { core: '124,157,255', ca: .85, mid: '90,120,230', dust: '194,208,255', speed: 22, acc: '196,120,255', deep: '50,60,170' },
@@ -352,6 +434,11 @@ const S = HUB.load({ answers: {}, notes: {}, chute: {} });
 if (!S.chute || typeof S.chute !== 'object') S.chute = {};
 ['answers', 'notes'].forEach(k => { if (!S[k] || typeof S[k] !== 'object') S[k] = {}; });
 let open = null, hoverM = null, hoverL = null, hoverK = null, copied = false;
+// Travei e riscar: riscadas valem só nesta aba; a lista de questões em que ele usou o Travei vai em S.notes._travei
+// (uma linha extra em answers, q_id "_travei", choice null). O que aprendeu vai em S.notes._aprendi.
+const STRK = {}; let strikeMode = false, guide = 0;
+const traveiIds = () => (S.notes._travei || '').split(',').map(x => x.trim()).filter(Boolean);
+function markTravei(id) { const l = traveiIds(); if (!l.includes(id)) { l.push(id); S.notes._travei = l.join(','); } }
 
 function statusOf(id) {
   const a = S.answers[id];
@@ -395,12 +482,14 @@ function cardHTML(q) {
   const free = q.allowFree ? `<label class="row free" id="cp-freerow"><kbd>${nOpt + 1}</kbd><input id="cp-free" type="text" data-row="${nOpt}" aria-label="${ph}" placeholder="${ph}" value="${esc(S.free[q.id] || '')}" autocomplete="off"><span class="ck" aria-hidden="true">✓</span></label>` : '';
   const deps = q.deps.length ? `<div class="deps"><span class="mono">DEPENDE DE</span>${q.deps.map(d => { const t = byId[d]; return `<button type="button" class="chip" data-dep="${esc(d)}"${t ? '' : ' disabled'}><i aria-hidden="true" data-depdot="${esc(d)}" style="background:${t ? ST[statusOf(d)].c : '#4d5562'}"></i>${esc(t ? d + ' · ' + t.short : d)}</button>`; }).join('')}</div>` : '';
   return `<div class="ph">
-<div class="ptop"><span class="mono">${esc(['TREINO', q.g && q.g.label ? q.g.label.toUpperCase() : '', q.id, pad(idx + 1) + '/' + pad(QS.length)].filter(Boolean).join(' · '))}</span><span class="pst"><span class="mono w" id="cp-w"></span><button type="button" class="x" id="cp-x" aria-label="Fechar (Esc)">×</button></span></div>
+<div class="ptop"><span class="ml"><span class="mono">${esc(['TREINO', q.g && q.g.label ? q.g.label.toUpperCase() : '', q.id, pad(idx + 1) + '/' + pad(QS.length)].filter(Boolean).join(' · '))}</span>${q.repetida ? '<span class="rep" title="Revisão de uma questão que você errou">JÁ VIU ESTA</span>' : ''}</span><span class="pst"><span class="mono w" id="cp-w"></span><button type="button" class="x" id="cp-x" aria-label="Fechar (Esc)">×</button></span></div>
 ${q.texts.length ? `<div class="txw">${q.texts.map(p => `<p class="tx">${esc(p)}</p>`).join('')}</div>` : ''}${q.code ? `<pre class="tx code">${esc(q.code)}</pre>` : ''}${q.source ? `<span class="mono" style="letter-spacing:.06em">${esc(q.source)}</span>` : ''}
 <h2 id="cp-q"${q.title.length > 90 ? ' class="long"' : ''}><span aria-hidden="true" class="gt">›</span> ${esc(q.title)}</h2>
 ${deps}
 </div>
-<div class="chrow"><button type="button" class="chb" id="cp-chute" aria-pressed="false">Chutei <span class="mono" style="letter-spacing:.1em">· X</span></button><span class="mono" id="cp-chh" style="letter-spacing:.08em">marque antes de responder, se for chutar</span></div>
+<div class="chrow"><button type="button" class="chb" id="cp-chute" aria-pressed="false">Chutei <span class="mono" style="letter-spacing:.1em">· X</span></button><button type="button" class="chb risc" id="cp-risc" aria-pressed="false" title="Tocar numa alternativa risca, sem marcar (R)">Riscar</button><span class="mono" id="cp-chh" style="letter-spacing:.08em">marque antes de responder, se for chutar</span><button type="button" class="chb trav end" id="cp-trav">Travei</button></div>
+<div class="steps" id="cp-steps" aria-label="Os 3 passos">${STEPS[isMat(q) ? 'mat' : 'txt'].map(s => `<div class="stp${RD && RD.passo === s[0] ? ' hl' : ''}"><b>${s[0]} ${s[1]}</b><span>${esc(s[2])}</span></div>`).join('')}</div>
+<div class="guide" id="cp-guide" hidden aria-live="polite"></div>
 <div role="radiogroup" aria-label="Alternativas" class="opts" id="cp-opts">${rows}</div>
 <div class="fbk" id="cp-fbk" hidden></div>
 <div class="note"><label for="cp-n">obs:</label><input id="cp-n" type="text" data-row="${nOpt + (q.allowFree ? 1 : 0)}" placeholder="anote a dúvida ou o porquê do erro" value="${esc(S.notes[q.id] || '')}" autocomplete="off"></div>
@@ -417,6 +506,20 @@ function updateCard() {
   $('cp-chh').textContent = a ? (ch ? 'você marcou que chutou' : 'respondida sem chute') : 'marque antes de responder, se for chutar';
   const nt0 = ch ? 'Por que chutou? (opcional)' : a && a !== q.answer ? 'O que você não sabia ou confundiu? (opcional)' : 'anote uma dúvida (opcional)';
   const ni = $('cp-n'); if (ni.placeholder !== nt0) ni.placeholder = nt0; ni.closest('.note').classList.toggle('ask', ch || (!!a && a !== q.answer));
+  const sk = STRK[q.id] || new Set();
+  pc.querySelectorAll('[data-opt]').forEach(b => b.classList.toggle('strk', !a && sk.has(b.dataset.opt)));
+  $('cp-opts').classList.toggle('striking', !a && strikeMode);
+  const rb = $('cp-risc'); rb.hidden = !!a; rb.setAttribute('aria-pressed', String(strikeMode));
+  $('cp-trav').hidden = !!a || !!guide;
+  $('cp-steps').hidden = !!a || !!guide;
+  $('cp-q').classList.toggle('hlq', !a && guide === 1);
+  const gd = $('cp-guide'), gk = a ? '' : guide ? q.id + '|' + guide : '';
+  if (gd.dataset.k !== gk) {
+    gd.dataset.k = gk; gd.hidden = !gk;
+    if (gk) { const st = STEPS[isMat(q) ? 'mat' : 'txt'][guide - 1];
+      gd.innerHTML = `<span class="tag">PASSO ${guide} DE 3 · ${st[1]}</span><p>${esc(GUIDE[isMat(q) ? 'mat' : 'txt'][guide - 1])}</p><div class="gb"><button type="button" class="fb" id="cp-gx">Fechar</button><button type="button" class="fb pri" id="cp-gn">${guide < 3 ? 'Próximo passo →' : 'Entendi'}</button></div>`; }
+    else gd.innerHTML = '';
+  }
   const fb = $('cp-fbk');
   if (a && fb.hidden) {
     // explicação em três partes quando existe (Conceito · Regra · Armadilha); senão, a antiga (por quê + pista)
@@ -425,7 +528,7 @@ function updateCard() {
     const ok = a === q.answer;
     fb.innerHTML = q.conceito
       ? `<div class="box why"><span class="tag">${ok ? 'ACERTOU · CONFIRA SE FOI POR ESTE MOTIVO' : 'CONCEITO · A CERTA É ' + esc(q.answer)}</span>${esc(q.conceito)}</div>`
-        + (q.regra ? `<div class="box rule"><span class="tag">${rule ? 'REGRA · ' + esc(rule[1].toUpperCase()) : 'REGRA'}</span>${esc(rule ? rule[2] : q.regra)}</div>` : '')
+        + (q.regra ? `<div class="box rule"><span class="tag">${rule ? esc(ruleTag(q, rule[1])) : 'REGRA'}</span>${esc(rule ? rule[2] : q.regra)}</div>` : '')
         + (q.armadilha ? `<div class="box trap"><span class="tag">${ok ? 'ARMADILHA · A QUE VOCÊ ESCAPOU' : 'ARMADILHA'}</span>${esc(q.armadilha)}</div>` : '')
         + (q.palavras.length ? `<div class="box words"><span class="tag">PALAVRAS</span><ul>${q.palavras.map(w => `<li><b>${esc(w.t)}</b><span class="need ${w.precisa ? 'y">PRECISAVA SABER' : 'n">DAVA PARA ACERTAR SEM'}</span><br>${esc(w.d)}</li>`).join('')}</ul></div>` : '')
       : (q.why ? `<div class="box why"><span class="tag">POR QUE É ${esc(q.answer)}</span>${esc(q.why)}</div>` : '') + (q.tip ? `<div class="box tip"><span class="tag">PISTA PARA A PRÓXIMA</span>${esc(q.tip)}</div>` : '');
@@ -442,6 +545,10 @@ pc.addEventListener('click', e => {
   const dep = e.target.closest('[data-dep]'); if (dep && !dep.disabled) { openQ(dep.dataset.dep); return; }
   const id = (e.target.closest('button') || {}).id;
   if (id === 'cp-chute') { if (!S.answers[q.id]) { S.chute[q.id] = !S.chute[q.id]; commit(); } return; }
+  if (id === 'cp-risc') { if (!S.answers[q.id]) { strikeMode = !strikeMode; updateCard(); } return; }
+  if (id === 'cp-trav') { if (!S.answers[q.id]) { guide = 1; strikeMode = false; markTravei(q.id); commit(); const h = $('cp-q'); if (h && h.scrollIntoView) h.scrollIntoView({ block: 'nearest', behavior: FX.still ? 'auto' : 'smooth' }); } return; }
+  if (id === 'cp-gn') { guide = guide < 3 ? guide + 1 : 0; strikeMode = guide === 2; updateCard(); const f = $(guide ? 'cp-gn' : 'cp-trav'); if (f && !f.hidden) f.focus({ preventScroll: true }); return; }
+  if (id === 'cp-gx') { guide = 0; strikeMode = false; updateCard(); return; }
   if (id === 'cp-x') closeQ();
   else if (id === 'cp-prev') step(-1);
   else if (id === 'cp-next') { const pending = QS.some(x => x.id !== q.id && statusOf(x.id) === 'pending'); if (pending || statusOf(q.id) === 'pending') step(1); else advance(); }
@@ -489,6 +596,7 @@ function paint() {
     const w = LI[i].querySelector('.w'); w.textContent = st.w; w.style.color = st.c;
   });
   GROUPS.forEach(g => { g.ratio = g.qs.filter(q => q.st !== 'pending').length / g.qs.length; });
+  $('ap-btn').hidden = !(total && done >= total);
   const copy = copied && !DATA.copyLabel ? 'Copiado ✓' : (DATA.copyLabel || 'Copiar resultado');
   if (painted.copy !== copy) { painted.copy = copy; $('cp-copy').textContent = copy; }
   updateCard();
@@ -496,7 +604,8 @@ function paint() {
 }
 function pick(q, oid, toggle) {
   if (S.answers[q.id]) return;
-  S.answers[q.id] = oid; commit();
+  if (strikeMode) { const sk = STRK[q.id] || (STRK[q.id] = new Set()); if (sk.has(oid)) sk.delete(oid); else sk.add(oid); updateCard(); return; }
+  guide = 0; S.answers[q.id] = oid; commit();
 }
 $('cp-copy').addEventListener('click', () => { HUB.copy(out()); copied = true; painted.copy = 'Copiado ✓'; $('cp-copy').textContent = painted.copy; });
 
@@ -513,7 +622,7 @@ let homeCam = null, backCam = null;
 function showQ(id, instant) {
   const q = byId[id], was = open;
   if (!was) backCam = { x: C.x, y: C.y, zoom: C.zoom, ox: C.ox, oy: C.oy };
-  open = id; hoverK = null;
+  open = id; hoverK = null; guide = 0; strikeMode = false;
   pc.innerHTML = cardHTML(q); updateCard(); panel.scrollTop = 0;
   if (was) { wrap.classList.add('swap'); pc.classList.add('fade'); requestAnimationFrame(() => pc.classList.remove('fade')); }
   else wrap.classList.remove('swap');
@@ -547,7 +656,7 @@ function step(d) { const i = QS.findIndex(q => q.id === open); openQ(QS[(i + d +
 function advance() {
   const i = QS.findIndex(q => q.id === open);
   const nxt = QS.slice(i + 1).concat(QS.slice(0, i)).find(x => statusOf(x.id) === 'pending');
-  if (nxt) openQ(nxt.id); else { closeFocus = 'copy'; closeQ(); }
+  if (nxt) openQ(nxt.id); else { closeFocus = 'copy'; closeQ(); if (!apShown) { apShown = true; setTimeout(openAp, 60); } }
 }
 
 /* ---------------- scene ---------------- */
@@ -893,12 +1002,42 @@ addEventListener('keydown', e => {
   const low = (k || '').toLowerCase(), n = Math.max('12345'.indexOf(low), 'abcde'.indexOf(low));
   if (n >= 0 && n < q.options.length) { e.preventDefault(); if (!S.answers[q.id]) { pick(q, q.options[n].id, false); const b = $('cp-next'); if (b) b.focus({ preventScroll: true }); } return; }
   if (low === 'x') { e.preventDefault(); if (!S.answers[q.id]) { S.chute[q.id] = !S.chute[q.id]; commit(); } return; }
+  if (low === 'r') { e.preventDefault(); if (!S.answers[q.id]) { strikeMode = !strikeMode; updateCard(); } return; }
   if (low === 'n' || low === '/') { e.preventDefault(); const el = $('cp-n'); if (el) el.focus(); }
 });
+
+/* ---------------- cartões: regra do dia, o que você aprendeu ---------------- */
+let apShown = false, mdlBack = null;
+const mdlOpen = () => ['rd', 'ap'].find(k => !$(k).hidden);
+function showMdl(k, focusEl) { mdlBack = document.activeElement; $(k).hidden = false; setTimeout(() => focusEl.focus({ preventScroll: true }), 30); }
+function hideMdl(k) { $(k).hidden = true; const b = mdlBack; mdlBack = null; if (b && b.focus && b.offsetParent) b.focus({ preventScroll: true }); }
+if (RD) {
+  $('rd-t').innerHTML = `<span class="num">${esc(RD.passo)}</span>${esc(RD.nome || '')}`;
+  $('rd-como').textContent = RD.como || ''; $('rd-exemplo').textContent = RD.exemplo || ''; $('rd-ex').hidden = !RD.exemplo;
+  const chip = $('rd-chip'); chip.textContent = 'Regra do dia · ' + RD.passo + ' ' + (RD.nome || ''); chip.hidden = false;
+  chip.addEventListener('click', () => showMdl('rd', $('rd-ok')));
+}
+$('rd').addEventListener('click', e => { if (e.target === $('rd') || e.target.id === 'rd-ok') hideMdl('rd'); });
+function openAp() { const t = $('ap-n'); t.value = S.notes._aprendi || ''; showMdl('ap', t); }
+function saveAp() { const v = $('ap-n').value.trim(); if (v !== (S.notes._aprendi || '').trim()) { S.notes._aprendi = v; commit(); } hideMdl('ap'); }
+$('ap-btn').addEventListener('click', openAp);
+$('ap').addEventListener('click', e => {
+  const h = e.target.closest('[data-ap]');
+  if (h) { const t = $('ap-n'), v = t.value.replace(/\s+$/, ''); t.value = (v ? v + '\n' : '') + h.dataset.ap; t.focus(); t.setSelectionRange(t.value.length, t.value.length); return; }
+  if (e.target.id === 'ap-ok') saveAp(); else if (e.target.id === 'ap-skip') hideMdl('ap');
+});
+// com um cartão aberto, as teclas não chegam à página (Esc fecha; Enter fecha a regra do dia)
+addEventListener('keydown', e => {
+  const k = mdlOpen(); if (!k) return;
+  e.stopPropagation();
+  if (e.key === 'Escape') { e.preventDefault(); hideMdl(k); }
+  else if (e.key === 'Enter' && k === 'rd' && (e.target || {}).tagName !== 'BUTTON') { e.preventDefault(); hideMdl('rd'); }
+}, true);
 
 /* ---------------- start ---------------- */
 paint();
 sync(FX.route.get(), true);
+if (RD && QS.some(q => statusOf(q.id) === 'pending')) showMdl('rd', $('rd-ok'));
 })();
 };
 </script>
