@@ -264,12 +264,12 @@ const byId = {}; QS.forEach(q => { byId[q.id] = q; });
 // Os 3 passos de prova: leitura/conteúdo e matemática. Regra do dia (DATA.regra_do_dia) destaca um deles.
 const isMat = q => /^mat/.test(String(q.group || ''));
 const STEPS = {
-  txt: [['1', 'PERGUNTA', 'O que ela pede?'], ['2', 'RISQUE', 'exagero (só, sempre, nunca), fora do texto, contrário do texto'], ['3', 'PROVE', 'só marque a que você aponta numa frase do texto']],
+  txt: [['1', 'PERGUNTA', 'O que ela pede?'], ['2', 'RISQUE', 'exagero (só, exclusivamente, todos, nenhum, restrito), fora do texto, contrário do texto'], ['3', 'PROVE', 'só marque a que você aponta numa frase do texto']],
   mat: [['1', 'PERGUNTA', 'o que é pra achar? (valor, diferença, total, %)'], ['2', 'ESTIME', 'arredonde e risque as absurdas'], ['3', 'TESTE', 'coloque as alternativas na conta, um passo por linha']]
 };
 const GUIDE = {
   txt: ['Leia só o comando destacado. Ele pede a correta, a incorreta, a ideia principal, o sentido de uma palavra? Diga com suas palavras.',
-        'Toque nas alternativas para riscar: as que exageram (só, sempre, nunca, apenas), as que falam de algo fora do texto e as que dizem o contrário do texto. Tocar de novo desrisca.',
+        'Toque nas alternativas para riscar: as que exageram (só, apenas, exclusivamente, sempre, nunca, todos, nenhum, restrito, imposto), as que falam de algo que o texto não diz e as que dizem o contrário do texto. Nem sempre tem palavra de exagero: aí risque a que inventa coisa. Tocar de novo desrisca.',
         'Qual sobrou que você prova com uma frase do texto? Dúvida entre duas: fica a que tem a frase.'],
   mat: ['Leia só o comando destacado. O que é pra achar: um valor, uma diferença, um total, uma porcentagem?',
         'Arredonde os números e faça a conta de cabeça. Toque nas alternativas absurdas, longe da sua estimativa, para riscar. Tocar de novo desrisca.',
